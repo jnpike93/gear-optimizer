@@ -74,5 +74,41 @@ public class GearDatabaseManagerTest
 			assertEquals("Magic", act.getStyle());
 		}
 	}
+
+	@Test
+	public void testBossingAndSlayerCategoryFiltering()
+	{
+		List<ActivityGear> bossing = dbManager.getActivities("Bossing", "All Styles");
+		List<ActivityGear> slayer = dbManager.getActivities("Slayer", "All Styles");
+		List<ActivityGear> raids = dbManager.getActivities("Raids", "All Styles");
+
+		assertFalse("Bossing activities should be populated", bossing.isEmpty());
+		assertFalse("Slayer activities should be populated", slayer.isEmpty());
+		assertFalse("Raids activities should be populated", raids.isEmpty());
+
+		assertTrue("Should have extensive bossing setups (>= 100)", bossing.size() >= 100);
+		assertTrue("Should have extensive slayer setups (>= 20)", slayer.size() >= 20);
+
+		// Verify Vorkath is present in bossing
+		boolean hasVorkath = bossing.stream().anyMatch(a -> a.getName().toLowerCase().contains("vorkath"));
+		assertTrue("Bossing should include Vorkath", hasVorkath);
+
+		// Verify Gargoyles, Abyssal demons, or Dust devils is present in slayer
+		boolean hasGargoyles = slayer.stream().anyMatch(a -> a.getName().toLowerCase().contains("gargoyle"));
+		boolean hasAbyssalDemons = slayer.stream().anyMatch(a -> a.getName().toLowerCase().contains("abyssal demon"));
+		boolean hasDustDevils = slayer.stream().anyMatch(a -> a.getName().toLowerCase().contains("dust devil"));
+		assertTrue("Slayer tasks should include Gargoyles", hasGargoyles);
+		assertTrue("Slayer tasks should include Abyssal demons", hasAbyssalDemons);
+		assertTrue("Slayer tasks should include Dust devils", hasDustDevils);
+
+		// Test combined category and style filter
+		List<ActivityGear> slayerMagic = dbManager.getActivities("Slayer", "Magic");
+		assertFalse("Slayer magic setups should exist (e.g. bursting/barraging)", slayerMagic.isEmpty());
+		for (ActivityGear act : slayerMagic)
+		{
+			assertEquals("Slayer", act.getCategory());
+			assertEquals("Magic", act.getStyle());
+		}
+	}
 }
 

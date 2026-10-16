@@ -40,6 +40,7 @@ public class GearOptimizerPanel extends PluginPanel
 	private final ItemManager itemManager;
 	private final ClientThread clientThread;
 
+	private final JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"All Categories", "Bossing", "Slayer", "Raids"});
 	private final JComboBox<String> styleCombo = new JComboBox<>(new String[]{"All Styles", "Melee", "Ranged", "Magic"});
 	private final JComboBox<ActivityItem> activityCombo = new JComboBox<>();
 	private final JLabel bankStatusLabel = new JLabel("Bank: 0 items cached");
@@ -102,6 +103,7 @@ public class GearOptimizerPanel extends PluginPanel
 
 		add(buildBottomPanel(), BorderLayout.SOUTH);
 
+		categoryCombo.addActionListener(e -> refreshActivities());
 		styleCombo.addActionListener(e -> refreshActivities());
 
 		refreshActivities();
@@ -122,6 +124,9 @@ public class GearOptimizerPanel extends PluginPanel
 		bankStatusLabel.setFont(new Font(Font.SANS_SERIF, Font.ITALIC, 11));
 		bankStatusLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		bankStatusLabel.setAlignmentX(LEFT_ALIGNMENT);
+
+		categoryCombo.setAlignmentX(LEFT_ALIGNMENT);
+		categoryCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
 
 		styleCombo.setAlignmentX(LEFT_ALIGNMENT);
 		styleCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
@@ -145,6 +150,14 @@ public class GearOptimizerPanel extends PluginPanel
 		panel.add(bankStatusLabel);
 		panel.add(Box.createVerticalStrut(10));
 
+		JLabel categoryLabel = new JLabel("Category Filter:");
+		categoryLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+		categoryLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
+		panel.add(categoryLabel);
+		panel.add(Box.createVerticalStrut(3));
+		panel.add(categoryCombo);
+		panel.add(Box.createVerticalStrut(8));
+
 		JLabel styleLabel = new JLabel("Combat Style Filter:");
 		styleLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		styleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
@@ -153,7 +166,7 @@ public class GearOptimizerPanel extends PluginPanel
 		panel.add(styleCombo);
 		panel.add(Box.createVerticalStrut(8));
 
-		JLabel activityLabel = new JLabel("Target Activity / Boss:");
+		JLabel activityLabel = new JLabel("Target Activity / Boss / Slayer:");
 		activityLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		activityLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
 		panel.add(activityLabel);
@@ -227,9 +240,10 @@ public class GearOptimizerPanel extends PluginPanel
 
 	public void refreshActivities()
 	{
+		String category = (String) categoryCombo.getSelectedItem();
 		String style = (String) styleCombo.getSelectedItem();
 		DefaultComboBoxModel<ActivityItem> model = new DefaultComboBoxModel<>();
-		List<ActivityGear> activities = dbManager.getActivitiesByStyle(style);
+		List<ActivityGear> activities = dbManager.getActivities(category, style);
 
 		for (ActivityGear activity : activities)
 		{

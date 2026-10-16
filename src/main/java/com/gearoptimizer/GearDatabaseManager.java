@@ -177,18 +177,26 @@ public class GearDatabaseManager
 
 	public List<ActivityGear> getActivitiesByStyle(String style)
 	{
+		return getActivities("All Categories", style);
+	}
+
+	public List<ActivityGear> getActivities(String category, String style)
+	{
 		if (database == null || database.getActivities() == null)
 		{
 			return Collections.emptyList();
 		}
-		if (style == null || style.equalsIgnoreCase("all") || style.equalsIgnoreCase("all styles"))
-		{
-			return getAllActivities();
-		}
+
+		boolean allCategories = category == null || category.equalsIgnoreCase("all") || category.equalsIgnoreCase("all categories");
+		boolean allStyles = style == null || style.equalsIgnoreCase("all") || style.equalsIgnoreCase("all styles");
+
 		List<ActivityGear> filtered = new ArrayList<>();
 		for (ActivityGear act : database.getActivities().values())
 		{
-			if (style.equalsIgnoreCase(act.getStyle()))
+			boolean matchCategory = allCategories || category.equalsIgnoreCase(act.getCategory());
+			boolean matchStyle = allStyles || style.equalsIgnoreCase(act.getStyle());
+
+			if (matchCategory && matchStyle)
 			{
 				filtered.add(act);
 			}
