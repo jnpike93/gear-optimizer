@@ -50,6 +50,9 @@ public class InventorySetupsExporter
 	@Inject
 	private ClientThread clientThread;
 
+	@Inject
+	private GearOptimizerConfig config;
+
 	public InventorySetupPortable createPortableSetup(OptimizationResult result)
 	{
 		if (result == null || result.getActivity() == null)
@@ -149,7 +152,7 @@ public class InventorySetupsExporter
 	 * 1. If InventorySetupsPlugin is actively running in RuneLite, injects the setup
 	 *    into the running instance via reflection, updating cache, layouts, config, and UI.
 	 * 2. If not running, persists directly into RuneLite's ConfigManager under the inventorysetups group.
-	 * 3. Also copies the portable JSON to clipboard so the user has both options.
+	 * 3. Only copies to clipboard if user has autoCopy enabled in configuration.
 	 */
 	public boolean directImportToInventorySetups(OptimizationResult result)
 	{
@@ -158,8 +161,11 @@ public class InventorySetupsExporter
 			return false;
 		}
 
-		// Always ensure clipboard has the valid portable JSON
-		copySetupToClipboard(result);
+		// Honor user configuration: only copy to clipboard if autoCopy is enabled
+		if (config != null && config.autoCopy())
+		{
+			copySetupToClipboard(result);
+		}
 
 		InventorySetupPortable portable = createPortableSetup(result);
 		String json = gson.toJson(portable);
@@ -218,6 +224,11 @@ public class InventorySetupsExporter
 			Method getSerializedSetup = portableClass.getMethod("getSerializedSetup");
 			Object newSetup = getSerializedSetup.invoke(portableObj);
 
+			if (newSetup == null)
+			{
+				return false;
+			}
+
 			clientThread.invokeLater(() -> {
 				try
 				{
@@ -227,42 +238,84 @@ public class InventorySetupsExporter
 
 					Method getCache = plugin.getClass().getMethod("getCache");
 					Object cache = getCache.invoke(plugin);
-					Method cacheAdd = cache.getClass().getMethod("addSetup", newSetup.getClass());
-					cacheAdd.invoke(cache, newSetup);
+					if (cache != null)
+					{
+						Method cacheAdd = cache.getClass().getMethod("addSetup", newSetup.getClass());
+						cacheAdd.invoke(cache, newSetup);
+					}
 
 					Method getSetups = plugin.getClass().getMethod("getInventorySetups");
 					@SuppressWarnings("unchecked")
 					List<Object> setupsList = (List<Object>) getSetups.invoke(plugin);
-					setupsList.add(newSetup);
+					if (setupsList != null)
+					{
+						// Deduplicate setup by name before appending
+						try
+						{
+							Method getNameMethod = newSetup.getClass().getMethod("getName");
+							String newName = (String) getNameMethod.invoke(newSetup);
+							if (newName != null)
+							{
+								setupsList.removeIf(existing -> {
+									try
+									{
+										return newName.equalsIgnoreCase((String) existing.getClass().getMethod("getName").invoke(existing));
+									}
+									catch (Exception ignored)
+									{
+										return false;
+									}
+								});
+							}
+						}
+						catch (Exception ignored) {}
+
+						setupsList.add(newSetup);
+					}
 
 					Method getLayoutUtils = plugin.getClass().getMethod("getLayoutUtilities");
 					Object layoutUtils = getLayoutUtils.invoke(plugin);
-					Method createSetupLayout = layoutUtils.getClass().getMethod("createSetupLayout", newSetup.getClass());
-					Object tempLayout = createSetupLayout.invoke(layoutUtils, newSetup);
+					if (layoutUtils != null)
+					{
+						Method createSetupLayout = layoutUtils.getClass().getMethod("createSetupLayout", newSetup.getClass());
+						Object tempLayout = createSetupLayout.invoke(layoutUtils, newSetup);
 
-					Method getLayout = portableClass.getMethod("getLayout");
-					int[] layoutArr = (int[]) getLayout.invoke(portableObj);
+						if (tempLayout != null)
+						{
+							Method getLayout = portableClass.getMethod("getLayout");
+							int[] layoutArr = (int[]) getLayout.invoke(portableObj);
 
-					Method getTag = tempLayout.getClass().getMethod("getTag");
-					String tag = (String) getTag.invoke(tempLayout);
+							Method getTag = tempLayout.getClass().getMethod("getTag");
+							String tag = (String) getTag.invoke(tempLayout);
 
-					Constructor<?> layoutCtor = tempLayout.getClass().getConstructor(String.class, int[].class);
-					Object newLayout = layoutCtor.newInstance(tag, layoutArr);
+							Constructor<?> layoutCtor = tempLayout.getClass().getConstructor(String.class, int[].class);
+							Object newLayout = layoutCtor.newInstance(tag, layoutArr);
 
-					Method getLayoutManager = plugin.getClass().getMethod("getLayoutManager");
-					Object layoutManager = getLayoutManager.invoke(plugin);
-					Method saveLayout = layoutManager.getClass().getMethod("saveLayout", tempLayout.getClass());
-					saveLayout.invoke(layoutManager, newLayout);
+							Method getLayoutManager = plugin.getClass().getMethod("getLayoutManager");
+							Object layoutManager = getLayoutManager.invoke(plugin);
+							if (layoutManager != null)
+							{
+								Method saveLayout = layoutManager.getClass().getMethod("saveLayout", tempLayout.getClass());
+								saveLayout.invoke(layoutManager, newLayout);
+							}
 
-					Method getTagManager = plugin.getClass().getMethod("getTagManager");
-					Object tagManager = getTagManager.invoke(plugin);
-					Method setHidden = tagManager.getClass().getMethod("setHidden", String.class, boolean.class);
-					setHidden.invoke(tagManager, tag, true);
+							Method getTagManager = plugin.getClass().getMethod("getTagManager");
+							Object tagManager = getTagManager.invoke(plugin);
+							if (tagManager != null)
+							{
+								Method setHidden = tagManager.getClass().getMethod("setHidden", String.class, boolean.class);
+								setHidden.invoke(tagManager, tag, true);
+							}
+						}
+					}
 
 					Method getDataManager = plugin.getClass().getMethod("getDataManager");
 					Object dataManager = getDataManager.invoke(plugin);
-					Method updateConfig = dataManager.getClass().getMethod("updateConfig", boolean.class, boolean.class);
-					updateConfig.invoke(dataManager, true, false);
+					if (dataManager != null)
+					{
+						Method updateConfig = dataManager.getClass().getMethod("updateConfig", boolean.class, boolean.class);
+						updateConfig.invoke(dataManager, true, false);
+					}
 
 					Field panelField = plugin.getClass().getDeclaredField("panel");
 					panelField.setAccessible(true);

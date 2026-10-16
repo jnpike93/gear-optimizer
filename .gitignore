@@ -10,4 +10,5 @@ nbproject/
 *.class
 .vscode/
 credentials.properties
-*.log
+*.log
+data/wiki_cache/

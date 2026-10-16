@@ -9,8 +9,8 @@ public interface GearOptimizerConfig extends Config
 {
 	@ConfigItem(
 		keyName = "autoSync",
-		name = "Check for Weekly Updates",
-		description = "Automatically check the remote static repository for Wiki gear updates weekly",
+		name = "Check for Monthly Updates",
+		description = "Automatically check the remote static repository for Wiki gear updates monthly (30 days)",
 		position = 1
 	)
 	default boolean autoSync()

@@ -12,6 +12,7 @@ import okhttp3.Response;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStream;
@@ -25,6 +26,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
@@ -34,6 +36,7 @@ public class GearDatabaseManager
 	private static final String DEFAULT_REMOTE_URL = "https://raw.githubusercontent.com/jnpike93/gear-optimizer/main/data/gear_database.json";
 	private static final File DIRECTORY = new File(RuneLite.RUNELITE_DIR, "gear-optimizer");
 	private static final File CACHE_FILE = new File(DIRECTORY, "gear_database.json");
+	private static final long MAX_REMOTE_PAYLOAD_BYTES = 10 * 1024 * 1024; // 10 MB maximum payload limit
 
 	private static final String CONFIG_GROUP = "gearoptimizer";
 	private static final String KEY_ETAG = "db_etag";
@@ -51,16 +54,21 @@ public class GearDatabaseManager
 	@Inject
 	private ConfigManager configManager;
 
-	private GearDatabase database;
+	@Inject
+	private GearOptimizerConfig config;
+
+	private volatile GearDatabase database;
+	private final Map<String, List<ActivityGear>> filterCache = new ConcurrentHashMap<>();
 
 	public void init()
 	{
 		loadLocalDatabase();
-		executor.submit(this::checkRemoteUpdate);
+		executor.submit(() -> checkRemoteUpdate(false));
 	}
 
 	public synchronized void loadLocalDatabase()
 	{
+		filterCache.clear();
 		if (CACHE_FILE.exists())
 		{
 			try (Reader reader = new FileReader(CACHE_FILE))
@@ -95,22 +103,37 @@ public class GearDatabaseManager
 
 	public void checkRemoteUpdate()
 	{
+		checkRemoteUpdate(false);
+	}
+
+	public void checkRemoteUpdate(boolean force)
+	{
 		try
 		{
-			// Check if 7 days have passed since last check
-			String lastCheckStr = configManager.getConfiguration(CONFIG_GROUP, KEY_LAST_CHECK);
-			if (lastCheckStr != null)
+			// Check if auto-sync is disabled by user in configuration
+			if (!force && config != null && !config.autoSync())
 			{
-				try
+				log.debug("Auto-sync is disabled in configuration. Skipping remote gear database check.");
+				return;
+			}
+
+			// Check if 30 days have passed since last check, unless manually forced
+			if (!force)
+			{
+				String lastCheckStr = configManager.getConfiguration(CONFIG_GROUP, KEY_LAST_CHECK);
+				if (lastCheckStr != null)
 				{
-					Instant lastCheck = Instant.parse(lastCheckStr);
-					if (Instant.now().isBefore(lastCheck.plus(7, ChronoUnit.DAYS)))
+					try
 					{
-						log.debug("Skipping gear database update check: last check was recent ({})", lastCheck);
-						return;
+						Instant lastCheck = Instant.parse(lastCheckStr);
+						if (Instant.now().isBefore(lastCheck.plus(30, ChronoUnit.DAYS)))
+						{
+							log.debug("Skipping gear database update check: last check was recent ({})", lastCheck);
+							return;
+						}
 					}
+					catch (Exception ignored) {}
 				}
-				catch (Exception ignored) {}
 			}
 
 			String cachedEtag = configManager.getConfiguration(CONFIG_GROUP, KEY_ETAG);
@@ -133,22 +156,41 @@ public class GearDatabaseManager
 
 				if (response.isSuccessful() && response.body() != null)
 				{
-					String json = response.body().string();
-					GearDatabase remote = gson.fromJson(json, GearDatabase.class);
-
-					if (remote != null && (database == null || remote.getVersion() > database.getVersion()))
+					long contentLength = response.body().contentLength();
+					if (contentLength > MAX_REMOTE_PAYLOAD_BYTES)
 					{
-						DIRECTORY.mkdirs();
-						Files.writeString(CACHE_FILE.toPath(), json);
-						this.database = remote;
+						log.warn("Remote database response exceeds maximum allowed size ({} bytes). Aborting update.", contentLength);
+						return;
+					}
 
-						String newEtag = response.header("ETag");
-						if (newEtag != null)
+					try (InputStream in = response.body().byteStream();
+					     Reader bodyReader = new InputStreamReader(new BufferedInputStream(in, 8192)))
+					{
+						GearDatabase remote = gson.fromJson(bodyReader, GearDatabase.class);
+
+						if (remote != null && remote.getVersion() > 0 && remote.getActivities() != null && !remote.getActivities().isEmpty())
 						{
-							configManager.setConfiguration(CONFIG_GROUP, KEY_ETAG, newEtag);
-						}
+							if (database == null || remote.getVersion() > database.getVersion())
+							{
+								DIRECTORY.mkdirs();
+								String validatedJson = gson.toJson(remote);
+								Files.writeString(CACHE_FILE.toPath(), validatedJson);
+								this.database = remote;
+								filterCache.clear();
 
-						log.info("Updated gear database to version {}", remote.getVersion());
+								String newEtag = response.header("ETag");
+								if (newEtag != null)
+								{
+									configManager.setConfiguration(CONFIG_GROUP, KEY_ETAG, newEtag);
+								}
+
+								log.info("Updated gear database to version {}", remote.getVersion());
+							}
+						}
+						else
+						{
+							log.warn("Remote gear database payload failed structural validation.");
+						}
 					}
 				}
 			}
@@ -166,13 +208,7 @@ public class GearDatabaseManager
 
 	public List<ActivityGear> getAllActivities()
 	{
-		if (database == null || database.getActivities() == null)
-		{
-			return Collections.emptyList();
-		}
-		List<ActivityGear> list = new ArrayList<>(database.getActivities().values());
-		list.sort(Comparator.comparing(ActivityGear::getName));
-		return list;
+		return getActivities("All Categories", "All Styles");
 	}
 
 	public List<ActivityGear> getActivitiesByStyle(String style)
@@ -187,22 +223,35 @@ public class GearDatabaseManager
 			return Collections.emptyList();
 		}
 
-		boolean allCategories = category == null || category.equalsIgnoreCase("all") || category.equalsIgnoreCase("all categories");
-		boolean allStyles = style == null || style.equalsIgnoreCase("all") || style.equalsIgnoreCase("all styles");
+		String catKey = category == null ? "all" : category.trim().toLowerCase();
+		String styleKey = style == null ? "all" : style.trim().toLowerCase();
+		String cacheKey = catKey + ":" + styleKey;
+
+		List<ActivityGear> cached = filterCache.get(cacheKey);
+		if (cached != null)
+		{
+			return cached;
+		}
+
+		boolean allCategories = catKey.equals("all") || catKey.equals("all categories");
+		boolean allStyles = styleKey.equals("all") || styleKey.equals("all styles");
 
 		List<ActivityGear> filtered = new ArrayList<>();
 		for (ActivityGear act : database.getActivities().values())
 		{
-			boolean matchCategory = allCategories || category.equalsIgnoreCase(act.getCategory());
-			boolean matchStyle = allStyles || style.equalsIgnoreCase(act.getStyle());
+			if (act == null) continue;
+			boolean matchCategory = allCategories || (act.getCategory() != null && act.getCategory().equalsIgnoreCase(category));
+			boolean matchStyle = allStyles || (act.getStyle() != null && act.getStyle().equalsIgnoreCase(style));
 
 			if (matchCategory && matchStyle)
 			{
 				filtered.add(act);
 			}
 		}
-		filtered.sort(Comparator.comparing(ActivityGear::getName));
-		return filtered;
+		filtered.sort(Comparator.comparing(a -> a.getName() != null ? a.getName() : a.getId()));
+		List<ActivityGear> unmodifiable = Collections.unmodifiableList(filtered);
+		filterCache.put(cacheKey, unmodifiable);
+		return unmodifiable;
 	}
 
 	public ActivityGear getActivity(String id)
@@ -215,4 +264,3 @@ public class GearDatabaseManager
 		return database != null ? database.getVersion() : 0;
 	}
 }
-

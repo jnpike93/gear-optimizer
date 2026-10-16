@@ -19,7 +19,6 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
-import net.runelite.client.util.ImageUtil;
 
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
@@ -27,6 +26,7 @@ import java.awt.image.BufferedImage;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 @PluginDescriptor(
@@ -63,6 +63,9 @@ public class GearOptimizerPlugin extends Plugin
 	@Inject
 	private GearOptimizerConfig config;
 
+	@Inject
+	private ScheduledExecutorService executor;
+
 	private GearOptimizerPanel panel;
 	private NavigationButton navButton;
 
@@ -77,7 +80,7 @@ public class GearOptimizerPlugin extends Plugin
 
 		dbManager.init();
 
-		panel = new GearOptimizerPanel(dbManager, optimizer, exporter, bankCache, itemManager, clientThread);
+		panel = new GearOptimizerPanel(dbManager, optimizer, exporter, bankCache, itemManager, clientThread, executor);
 
 		// Default placeholder icon (16x16 shield/sword)
 		BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
@@ -106,7 +109,7 @@ public class GearOptimizerPlugin extends Plugin
 				bankCache.loadForAccount(accountHash);
 				bankItemIds.clear();
 				bankItemIds.addAll(bankCache.getCachedItemIds());
-				updateOwnedItems();
+				updateOwnedItems(false);
 			}
 		});
 	}
@@ -131,7 +134,7 @@ public class GearOptimizerPlugin extends Plugin
 			bankCache.loadForAccount(accountHash);
 			bankItemIds.clear();
 			bankItemIds.addAll(bankCache.getCachedItemIds());
-			clientThread.invokeLater(this::updateOwnedItems);
+			clientThread.invokeLater(() -> updateOwnedItems(false));
 		}
 	}
 
@@ -139,15 +142,20 @@ public class GearOptimizerPlugin extends Plugin
 	public void onItemContainerChanged(ItemContainerChanged event)
 	{
 		int containerId = event.getContainerId();
-		if (containerId == InventoryID.BANK.getId()
-			|| containerId == InventoryID.INVENTORY.getId()
-			|| containerId == InventoryID.EQUIPMENT.getId())
+		boolean isBank = (containerId == InventoryID.BANK.getId());
+		boolean isInvOrEquip = (containerId == InventoryID.INVENTORY.getId() || containerId == InventoryID.EQUIPMENT.getId());
+
+		if (isBank)
 		{
-			updateOwnedItems();
+			updateOwnedItems(true); // Persist bank snapshot asynchronously
+		}
+		else if (isInvOrEquip)
+		{
+			updateOwnedItems(false); // In-memory update only, zero disk I/O on game ticks
 		}
 	}
 
-	private void updateOwnedItems()
+	private void updateOwnedItems(boolean persistToDisk)
 	{
 		if (client.getGameState() != GameState.LOGGED_IN)
 		{
@@ -200,7 +208,14 @@ public class GearOptimizerPlugin extends Plugin
 		allOwned.addAll(invItemIds);
 		allOwned.addAll(equipItemIds);
 
-		bankCache.save(allOwned, accountHash);
+		if (persistToDisk)
+		{
+			bankCache.save(allOwned, accountHash);
+		}
+		else
+		{
+			bankCache.updateInMemory(allOwned);
+		}
 
 		SwingUtilities.invokeLater(() -> panel.updateBankStatus());
 	}
@@ -246,4 +261,3 @@ public class GearOptimizerPlugin extends Plugin
 		return configManager.getConfig(GearOptimizerConfig.class);
 	}
 }
-

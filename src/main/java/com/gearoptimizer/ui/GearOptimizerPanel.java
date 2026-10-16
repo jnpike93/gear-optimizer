@@ -6,6 +6,7 @@ import com.gearoptimizer.PersistentBankCache;
 import com.gearoptimizer.SetupOptimizer;
 import com.gearoptimizer.SetupOptimizer.OptimizationResult;
 import com.gearoptimizer.model.ActivityGear;
+import com.gearoptimizer.model.InventoryItem;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
@@ -30,6 +31,7 @@ import java.awt.Font;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ScheduledExecutorService;
 
 public class GearOptimizerPanel extends PluginPanel
 {
@@ -39,6 +41,7 @@ public class GearOptimizerPanel extends PluginPanel
 	private final PersistentBankCache bankCache;
 	private final ItemManager itemManager;
 	private final ClientThread clientThread;
+	private final ScheduledExecutorService executor;
 
 	private final JComboBox<String> categoryCombo = new JComboBox<>(new String[]{"All Categories", "Bossing", "Slayer", "Raids"});
 	private final JComboBox<String> styleCombo = new JComboBox<>(new String[]{"All Styles", "Melee", "Ranged", "Magic"});
@@ -79,6 +82,18 @@ public class GearOptimizerPanel extends PluginPanel
 		ItemManager itemManager,
 		ClientThread clientThread)
 	{
+		this(dbManager, optimizer, exporter, bankCache, itemManager, clientThread, null);
+	}
+
+	public GearOptimizerPanel(
+		GearDatabaseManager dbManager,
+		SetupOptimizer optimizer,
+		InventorySetupsExporter exporter,
+		PersistentBankCache bankCache,
+		ItemManager itemManager,
+		ClientThread clientThread,
+		ScheduledExecutorService executor)
+	{
 		super(false);
 		this.dbManager = dbManager;
 		this.optimizer = optimizer;
@@ -86,6 +101,7 @@ public class GearOptimizerPanel extends PluginPanel
 		this.bankCache = bankCache;
 		this.itemManager = itemManager;
 		this.clientThread = clientThread;
+		this.executor = executor;
 
 		setLayout(new BorderLayout());
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -220,13 +236,29 @@ public class GearOptimizerPanel extends PluginPanel
 			}
 		});
 
-		JButton updateDbButton = new JButton("Check Wiki Database Update");
+		JButton updateDbButton = new JButton("Check Database Updates");
+		updateDbButton.setToolTipText("Manually checks for database updates (bypasses 30-day cache check, operates 100% offline without hitting the Wiki)");
 		updateDbButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 		updateDbButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
 		updateDbButton.addActionListener(e -> {
-			dbManager.checkRemoteUpdate();
-			refreshActivities();
-			messageLabel.setText("Checked database updates (v" + dbManager.getVersion() + ")");
+			updateDbButton.setEnabled(false);
+			messageLabel.setText("Checking for updates...");
+			Runnable checkTask = () -> {
+				dbManager.checkRemoteUpdate(true);
+				SwingUtilities.invokeLater(() -> {
+					updateDbButton.setEnabled(true);
+					refreshActivities();
+					messageLabel.setText("Database up to date (v" + dbManager.getVersion() + ")");
+				});
+			};
+			if (executor != null)
+			{
+				executor.submit(checkTask);
+			}
+			else
+			{
+				new Thread(checkTask, "GearOptimizer-ManualUpdate").start();
+			}
 		});
 
 		panel.add(directButton);
@@ -302,6 +334,22 @@ public class GearOptimizerPanel extends PluginPanel
 				try
 				{
 					names.put(id, itemManager.getItemComposition(id).getName());
+				}
+				catch (Exception ignored) {}
+			}
+			for (InventoryItem invItem : result.getAvailableInventory())
+			{
+				try
+				{
+					names.put(invItem.getId(), itemManager.getItemComposition(invItem.getId()).getName());
+				}
+				catch (Exception ignored) {}
+			}
+			for (InventoryItem invItem : result.getMissingInventory())
+			{
+				try
+				{
+					names.put(invItem.getId(), itemManager.getItemComposition(invItem.getId()).getName());
 				}
 				catch (Exception ignored) {}
 			}
@@ -410,6 +458,84 @@ public class GearOptimizerPanel extends PluginPanel
 
 				resultsPanel.add(slotRow);
 				resultsPanel.add(Box.createVerticalStrut(2));
+			}
+
+			// Recommended Inventory / Supplies Section
+			if (!result.getAvailableInventory().isEmpty() || !result.getMissingInventory().isEmpty())
+			{
+				resultsPanel.add(Box.createVerticalStrut(8));
+
+				JPanel invHeaderPanel = new JPanel(new BorderLayout());
+				invHeaderPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+				invHeaderPanel.setBorder(new EmptyBorder(4, 4, 4, 4));
+
+				JLabel invHeader = new JLabel("Supplies & Inventory");
+				invHeader.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
+				invHeader.setForeground(ColorScheme.BRAND_ORANGE);
+				invHeaderPanel.add(invHeader, BorderLayout.WEST);
+
+				int availCount = result.getAvailableInventory().size();
+				int totalCount = availCount + result.getMissingInventory().size();
+				JLabel invCountLabel = new JLabel(availCount + "/" + totalCount + " Ready", SwingConstants.RIGHT);
+				invCountLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+				invCountLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+				invHeaderPanel.add(invCountLabel, BorderLayout.EAST);
+
+				resultsPanel.add(invHeaderPanel);
+				resultsPanel.add(Box.createVerticalStrut(3));
+
+				// Available Inventory
+				for (InventoryItem invItem : result.getAvailableInventory())
+				{
+					String itemName = itemNames.getOrDefault(invItem.getId(), "Item " + invItem.getId());
+					if (invItem.getQty() > 1)
+					{
+						itemName += " x" + invItem.getQty();
+					}
+
+					JPanel row = new JPanel(new BorderLayout());
+					row.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+					row.setBorder(BorderFactory.createCompoundBorder(
+						BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.DARK_GRAY_COLOR),
+						new EmptyBorder(3, 6, 3, 6)
+					));
+
+					JLabel nameLabel = new JLabel(itemName);
+					nameLabel.setForeground(Color.WHITE);
+					row.add(nameLabel, BorderLayout.WEST);
+
+					resultsPanel.add(row);
+					resultsPanel.add(Box.createVerticalStrut(2));
+				}
+
+				// Missing Inventory
+				for (InventoryItem invItem : result.getMissingInventory())
+				{
+					String itemName = itemNames.getOrDefault(invItem.getId(), "Item " + invItem.getId());
+					if (invItem.getQty() > 1)
+					{
+						itemName += " x" + invItem.getQty();
+					}
+
+					JPanel row = new JPanel(new BorderLayout());
+					row.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+					row.setBorder(BorderFactory.createCompoundBorder(
+						BorderFactory.createMatteBorder(0, 0, 1, 0, ColorScheme.DARK_GRAY_COLOR),
+						new EmptyBorder(3, 6, 3, 6)
+					));
+
+					JLabel nameLabel = new JLabel(itemName);
+					nameLabel.setForeground(new Color(200, 200, 200));
+					row.add(nameLabel, BorderLayout.WEST);
+
+					JLabel missingBadge = new JLabel("(Missing in Bank)", SwingConstants.RIGHT);
+					missingBadge.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
+					missingBadge.setForeground(new Color(255, 110, 100));
+					row.add(missingBadge, BorderLayout.EAST);
+
+					resultsPanel.add(row);
+					resultsPanel.add(Box.createVerticalStrut(2));
+				}
 			}
 		}
 
