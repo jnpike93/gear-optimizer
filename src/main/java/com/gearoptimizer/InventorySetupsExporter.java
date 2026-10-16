@@ -9,20 +9,14 @@ import com.google.common.hash.Hashing;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import lombok.extern.slf4j.Slf4j;
-import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
-import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginManager;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import javax.swing.SwingUtilities;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -46,9 +40,6 @@ public class InventorySetupsExporter
 
 	@Inject
 	private PluginManager pluginManager;
-
-	@Inject
-	private ClientThread clientThread;
 
 	@Inject
 	private GearOptimizerConfig config;
@@ -148,11 +139,11 @@ public class InventorySetupsExporter
 	}
 
 	/**
-	 * Directly interfaces with the Inventory Setups plugin:
-	 * 1. If InventorySetupsPlugin is actively running in RuneLite, injects the setup
-	 *    into the running instance via reflection, updating cache, layouts, config, and UI.
-	 * 2. If not running, persists directly into RuneLite's ConfigManager under the inventorysetups group.
-	 * 3. Only copies to clipboard if user has autoCopy enabled in configuration.
+	 * Directly interfaces with the Inventory Setups plugin using RuneLite's ConfigManager:
+	 * 1. Persists setup configuration directly into ConfigManager under the inventorysetups group.
+	 *    Inventory Setups plugin listens to ConfigChanged events and automatically loads the setup.
+	 * 2. If user has autoCopy enabled, copies the portable JSON to clipboard.
+	 * 3. 100% reflection-free for full compliance with RuneLite Plugin Hub guidelines.
 	 */
 	public boolean directImportToInventorySetups(OptimizationResult result)
 	{
@@ -161,190 +152,30 @@ public class InventorySetupsExporter
 			return false;
 		}
 
-		// Honor user configuration: only copy to clipboard if autoCopy is enabled
+		// Honor user configuration: copy to clipboard if autoCopy is enabled
 		if (config != null && config.autoCopy())
 		{
 			copySetupToClipboard(result);
 		}
 
 		InventorySetupPortable portable = createPortableSetup(result);
-		String json = gson.toJson(portable);
-
-		// Check for running InventorySetupsPlugin
-		Plugin invSetupsPlugin = findInventorySetupsPlugin();
-
-		if (invSetupsPlugin != null)
+		if (portable == null)
 		{
-			boolean success = injectLiveSetup(invSetupsPlugin, json);
-			if (success)
-			{
-				log.info("Directly injected setup '{}' into active Inventory Setups plugin", result.getActivity().getName());
-				return true;
-			}
+			return false;
 		}
 
-		// Fallback: Persist directly into ConfigManager
 		return persistToConfigManager(portable);
 	}
 
 	public boolean isInventorySetupsInstalled()
 	{
-		return findInventorySetupsPlugin() != null;
-	}
-
-	private Plugin findInventorySetupsPlugin()
-	{
 		if (pluginManager == null)
 		{
-			return null;
-		}
-
-		for (Plugin p : pluginManager.getPlugins())
-		{
-			if (INVENTORY_SETUPS_PLUGIN_CLASS.equals(p.getClass().getName()))
-			{
-				return p;
-			}
-		}
-		return null;
-	}
-
-	private boolean injectLiveSetup(Plugin plugin, String portableJson)
-	{
-		try
-		{
-			ClassLoader cl = plugin.getClass().getClassLoader();
-			Class<?> portableClass = cl.loadClass("inventorysetups.serialization.InventorySetupPortable");
-
-			Field gsonField = plugin.getClass().getDeclaredField("gson");
-			gsonField.setAccessible(true);
-			Gson pluginGson = (Gson) gsonField.get(plugin);
-
-			Object portableObj = pluginGson.fromJson(portableJson, portableClass);
-			Method getSerializedSetup = portableClass.getMethod("getSerializedSetup");
-			Object newSetup = getSerializedSetup.invoke(portableObj);
-
-			if (newSetup == null)
-			{
-				return false;
-			}
-
-			clientThread.invokeLater(() -> {
-				try
-				{
-					Method preProcess = plugin.getClass().getDeclaredMethod("preProcessNewSetup", newSetup.getClass());
-					preProcess.setAccessible(true);
-					preProcess.invoke(plugin, newSetup);
-
-					Method getCache = plugin.getClass().getMethod("getCache");
-					Object cache = getCache.invoke(plugin);
-					if (cache != null)
-					{
-						Method cacheAdd = cache.getClass().getMethod("addSetup", newSetup.getClass());
-						cacheAdd.invoke(cache, newSetup);
-					}
-
-					Method getSetups = plugin.getClass().getMethod("getInventorySetups");
-					@SuppressWarnings("unchecked")
-					List<Object> setupsList = (List<Object>) getSetups.invoke(plugin);
-					if (setupsList != null)
-					{
-						// Deduplicate setup by name before appending
-						try
-						{
-							Method getNameMethod = newSetup.getClass().getMethod("getName");
-							String newName = (String) getNameMethod.invoke(newSetup);
-							if (newName != null)
-							{
-								setupsList.removeIf(existing -> {
-									try
-									{
-										return newName.equalsIgnoreCase((String) existing.getClass().getMethod("getName").invoke(existing));
-									}
-									catch (Exception ignored)
-									{
-										return false;
-									}
-								});
-							}
-						}
-						catch (Exception ignored) {}
-
-						setupsList.add(newSetup);
-					}
-
-					Method getLayoutUtils = plugin.getClass().getMethod("getLayoutUtilities");
-					Object layoutUtils = getLayoutUtils.invoke(plugin);
-					if (layoutUtils != null)
-					{
-						Method createSetupLayout = layoutUtils.getClass().getMethod("createSetupLayout", newSetup.getClass());
-						Object tempLayout = createSetupLayout.invoke(layoutUtils, newSetup);
-
-						if (tempLayout != null)
-						{
-							Method getLayout = portableClass.getMethod("getLayout");
-							int[] layoutArr = (int[]) getLayout.invoke(portableObj);
-
-							Method getTag = tempLayout.getClass().getMethod("getTag");
-							String tag = (String) getTag.invoke(tempLayout);
-
-							Constructor<?> layoutCtor = tempLayout.getClass().getConstructor(String.class, int[].class);
-							Object newLayout = layoutCtor.newInstance(tag, layoutArr);
-
-							Method getLayoutManager = plugin.getClass().getMethod("getLayoutManager");
-							Object layoutManager = getLayoutManager.invoke(plugin);
-							if (layoutManager != null)
-							{
-								Method saveLayout = layoutManager.getClass().getMethod("saveLayout", tempLayout.getClass());
-								saveLayout.invoke(layoutManager, newLayout);
-							}
-
-							Method getTagManager = plugin.getClass().getMethod("getTagManager");
-							Object tagManager = getTagManager.invoke(plugin);
-							if (tagManager != null)
-							{
-								Method setHidden = tagManager.getClass().getMethod("setHidden", String.class, boolean.class);
-								setHidden.invoke(tagManager, tag, true);
-							}
-						}
-					}
-
-					Method getDataManager = plugin.getClass().getMethod("getDataManager");
-					Object dataManager = getDataManager.invoke(plugin);
-					if (dataManager != null)
-					{
-						Method updateConfig = dataManager.getClass().getMethod("updateConfig", boolean.class, boolean.class);
-						updateConfig.invoke(dataManager, true, false);
-					}
-
-					Field panelField = plugin.getClass().getDeclaredField("panel");
-					panelField.setAccessible(true);
-					Object panelObj = panelField.get(plugin);
-					if (panelObj != null)
-					{
-						Method redraw = panelObj.getClass().getMethod("redrawOverviewPanel", boolean.class);
-						SwingUtilities.invokeLater(() -> {
-							try
-							{
-								redraw.invoke(panelObj, false);
-							}
-							catch (Exception ignored) {}
-						});
-					}
-				}
-				catch (Exception e)
-				{
-					log.error("Failed to add live setup in InventorySetupsPlugin", e);
-				}
-			});
-
-			return true;
-		}
-		catch (Exception e)
-		{
-			log.warn("Direct live injection into InventorySetupsPlugin failed", e);
 			return false;
 		}
+
+		return pluginManager.getPlugins().stream()
+			.anyMatch(p -> INVENTORY_SETUPS_PLUGIN_CLASS.equals(p.getClass().getName()));
 	}
 
 	private boolean persistToConfigManager(InventorySetupPortable portable)

@@ -22,7 +22,7 @@ import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class SetupOptimizerTest
@@ -231,6 +231,38 @@ public class SetupOptimizerTest
 		OptimizationResult result = optimizer.optimize(activity);
 
 		assertEquals(Integer.valueOf(1540), result.getEquippedItems().get("shield"));
+	}
+
+	@Test
+	public void testTwoHandedWeaponSuppressesShieldSlot()
+	{
+		int scytheId = 22325; // Scythe of Vitur (2H)
+		int avernicId = 22322; // Avernic defender (Shield)
+
+		when(bankCache.hasItem(scytheId)).thenReturn(true);
+		when(bankCache.hasItem(avernicId)).thenReturn(true);
+
+		// Concrete ItemStats reporting twoHanded = true
+		net.runelite.client.game.ItemEquipmentStats equipStats = net.runelite.client.game.ItemEquipmentStats.builder()
+				.isTwoHanded(true)
+				.build();
+		net.runelite.client.game.ItemStats stats = new net.runelite.client.game.ItemStats(true, 0.0, 0, equipStats);
+		when(itemManager.getItemStats(scytheId)).thenReturn(stats);
+
+		Map<String, List<Integer>> slots = new HashMap<>();
+		slots.put("weapon", Arrays.asList(scytheId));
+		slots.put("shield", Arrays.asList(avernicId));
+
+		ActivityGear activity = new ActivityGear(
+			"tob_melee", "Theatre of Blood (Melee)", "Raids", "Melee",
+			slots,
+			Collections.emptyList()
+		);
+
+		OptimizationResult result = optimizer.optimize(activity);
+
+		assertEquals(Integer.valueOf(scytheId), result.getEquippedItems().get("weapon"));
+		assertNull("Shield slot must be suppressed when a 2-handed weapon is equipped", result.getEquippedItems().get("shield"));
 	}
 }
 

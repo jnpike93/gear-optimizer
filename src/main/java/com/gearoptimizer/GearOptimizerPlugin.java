@@ -19,6 +19,7 @@ import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
+import net.runelite.client.util.ImageUtil;
 
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
@@ -31,6 +32,7 @@ import java.util.concurrent.ScheduledExecutorService;
 @Slf4j
 @PluginDescriptor(
 	name = "Gear Optimizer",
+	internalName = "gear-optimizer",
 	description = "Recommends optimal gear setups from your bank based on OSRS Wiki guides and exports to Inventory Setups",
 	tags = {"gear", "inventory", "setups", "wiki", "optimizer", "bank", "bossing"}
 )
@@ -82,15 +84,7 @@ public class GearOptimizerPlugin extends Plugin
 
 		panel = new GearOptimizerPanel(dbManager, optimizer, exporter, bankCache, itemManager, clientThread, executor);
 
-		// Default placeholder icon (16x16 shield/sword)
-		BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-		for (int x = 2; x < 14; x++)
-		{
-			for (int y = 2; y < 14; y++)
-			{
-				icon.setRGB(x, y, 0xFFE0B034); // Gold square icon
-			}
-		}
+		BufferedImage icon = ImageUtil.loadImageResource(getClass(), "icon.png");
 
 		navButton = NavigationButton.builder()
 			.tooltip("Gear Optimizer")
@@ -119,6 +113,8 @@ public class GearOptimizerPlugin extends Plugin
 	{
 		log.info("Shutting down Gear Optimizer plugin...");
 		clientToolbar.removeNavigation(navButton);
+		navButton = null;
+		panel = null;
 		bankCache.clear();
 		bankItemIds.clear();
 		invItemIds.clear();
@@ -135,6 +131,19 @@ public class GearOptimizerPlugin extends Plugin
 			bankItemIds.clear();
 			bankItemIds.addAll(bankCache.getCachedItemIds());
 			clientThread.invokeLater(() -> updateOwnedItems(false));
+		}
+		else if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING)
+		{
+			bankItemIds.clear();
+			invItemIds.clear();
+			equipItemIds.clear();
+			bankCache.clear();
+			SwingUtilities.invokeLater(() -> {
+				if (panel != null)
+				{
+					panel.updateBankStatus();
+				}
+			});
 		}
 	}
 

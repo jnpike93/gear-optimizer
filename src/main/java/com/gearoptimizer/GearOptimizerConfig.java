@@ -11,11 +11,12 @@ public interface GearOptimizerConfig extends Config
 		keyName = "autoSync",
 		name = "Check for Monthly Updates",
 		description = "Automatically check the remote static repository for Wiki gear updates monthly (30 days)",
+		warning = "This feature submits your IP address to a 3rd-party server not controlled or verified by RuneLite developers",
 		position = 1
 	)
 	default boolean autoSync()
 	{
-		return true;
+		return false;
 	}
 
 	@ConfigItem(

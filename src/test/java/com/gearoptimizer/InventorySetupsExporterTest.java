@@ -37,7 +37,7 @@ public class InventorySetupsExporterTest
 	private PluginManager pluginManager;
 
 	@Mock
-	private ClientThread clientThread;
+	private GearOptimizerConfig config;
 
 	@InjectMocks
 	private InventorySetupsExporter exporter;
@@ -123,6 +123,31 @@ public class InventorySetupsExporterTest
 		assertTrue("Setup must contain 'afi'", setupObj.has("afi"));
 		assertEquals(14, setupObj.getAsJsonArray("eq").size());
 		assertEquals(28, setupObj.getAsJsonArray("inv").size());
+	}
+
+	@Test
+	public void testDirectImportPersistsToConfigManager()
+	{
+		ActivityGear activity = new ActivityGear(
+			"toa_melee", "Tombs of Amascut (Melee)", "Raids", "Melee",
+			Collections.emptyMap(),
+			Collections.emptyList()
+		);
+
+		OptimizationResult result = OptimizationResult.builder()
+			.activity(activity)
+			.equippedItems(Collections.singletonMap("weapon", 22325))
+			.availableInventory(Collections.emptyList())
+			.build();
+
+		boolean ok = exporter.directImportToInventorySetups(result);
+		assertTrue("Direct import must return true on success", ok);
+
+		org.mockito.Mockito.verify(configManager).setConfiguration(
+			org.mockito.ArgumentMatchers.eq("inventorysetups"),
+			org.mockito.ArgumentMatchers.startsWith("setupsV3_"),
+			org.mockito.ArgumentMatchers.anyString()
+		);
 	}
 }
 

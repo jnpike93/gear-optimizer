@@ -302,6 +302,14 @@ public class SetupOptimizer
 			}
 		}
 
+		// If chosen weapon is two-handed, suppress shield slot
+		Integer equippedWeapon = result.getEquippedItems().get("weapon");
+		if (equippedWeapon != null && isTwoHandedWeapon(equippedWeapon))
+		{
+			result.getEquippedItems().remove("shield");
+			result.getMissingBisItems().remove("shield");
+		}
+
 		// 2. Resolve Inventory Supplies
 		if (activity.getInventory() != null)
 		{
@@ -320,6 +328,26 @@ public class SetupOptimizer
 		}
 
 		return result;
+	}
+
+	public boolean isTwoHandedWeapon(int itemId)
+	{
+		if (itemManager == null)
+		{
+			return false;
+		}
+
+		try
+		{
+			net.runelite.client.game.ItemStats stats = itemManager.getItemStats(itemId);
+			if (stats != null && stats.getEquipment() != null)
+			{
+				return stats.getEquipment().isTwoHanded();
+			}
+		}
+		catch (Exception ignored) {}
+
+		return false;
 	}
 }
 
