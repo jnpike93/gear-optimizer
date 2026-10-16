@@ -1,22 +1,49 @@
 {
   "version": 20261015,
-  "last_updated": "2026-10-15T00:00:00Z",
+  "last_updated": "2026-10-15T20:00:00Z",
   "activities": {
+    "vorkath_melee": {
+      "id": "vorkath_melee",
+      "name": "Vorkath (Melee)",
+      "category": "Bossing",
+      "style": "Melee",
+      "slots": {
+        "weapon": [22978, 26219, 12006, 4151],
+        "shield": [22322, 12954, 11283],
+        "head": [26382, 23230, 10828],
+        "body": [26384, 11832, 10551],
+        "legs": [26386, 11834, 21298],
+        "hands": [22981, 7462],
+        "boots": [13239, 11840],
+        "neck": [12018, 10588],
+        "ring": [28307, 11773, 22975],
+        "cape": [21295, 6570, 22114],
+        "ammo": [22947, 20220]
+      },
+      "inventory": [
+        {"id": 24635, "qty": 1, "optional": false},
+        {"id": 22209, "qty": 1, "optional": false},
+        {"id": 12913, "qty": 1, "optional": false},
+        {"id": 2434, "qty": 3, "optional": false},
+        {"id": 3144, "qty": 6, "optional": false},
+        {"id": 391, "qty": 8, "optional": false}
+      ]
+    },
     "vorkath_ranged": {
       "id": "vorkath_ranged",
       "name": "Vorkath (Ranged)",
       "category": "Bossing",
       "style": "Ranged",
       "slots": {
-        "weapon": [22324, 21902, 12269],
-        "shield": [22002, 11283, 2890],
-        "head": [25376, 25377, 11664],
-        "body": [25379, 25380, 13072],
-        "legs": [25382, 25383, 13073],
+        "weapon": [21902, 26374, 11785, 9185],
+        "shield": [22002, 21000, 11283, 12610],
+        "head": [27226, 27351, 11664],
+        "body": [27229, 27354, 13072],
+        "legs": [27232, 27357, 13073],
         "hands": [26235, 8842, 7462],
         "boots": [13237, 12829, 2577],
-        "neck": [19547, 6585, 1704],
-        "ring": [28307, 11773, 19550, 2572],
+        "neck": [12018, 10588],
+        "ring": [28310, 11771, 19550],
         "ammo": [21944, 21946, 9242],
         "cape": [22109, 10499]
       },
@@ -36,7 +63,7 @@
       "style": "Magic",
       "slots": {
         "weapon": [27275, 22323, 12899, 11905],
-        "shield": [22003, 12825, 6889],
+        "shield": [27253, 12825, 22003, 6889],
         "head": [21018, 26231, 4708],
         "body": [21021, 26233, 4712],
         "legs": [21024, 26235, 4714],
@@ -53,26 +80,408 @@
         {"id": 391, "qty": 10, "optional": false}
       ]
     },
+    "zulrah_ranged": {
+      "id": "zulrah_ranged",
+      "name": "Zulrah (Ranged)",
+      "category": "Bossing",
+      "style": "Ranged",
+      "slots": {
+        "weapon": [20997, 25865, 12926],
+        "shield": [21000, 12610],
+        "head": [27226, 23971, 11826],
+        "body": [27229, 23975, 11828],
+        "legs": [27232, 23979, 11830],
+        "hands": [26235, 7462],
+        "boots": [13237, 12829, 2577],
+        "neck": [19547, 6585],
+        "ring": [28310, 11771, 19550],
+        "cape": [28951, 22109, 10499],
+        "ammo": [11212, 21326]
+      },
+      "inventory": [
+        {"id": 12913, "qty": 1, "optional": false},
+        {"id": 2434, "qty": 2, "optional": false},
+        {"id": 3144, "qty": 6, "optional": false},
+        {"id": 391, "qty": 10, "optional": false}
+      ]
+    },
     "muspah_ranged": {
       "id": "muspah_ranged",
       "name": "Phantom Muspah (Ranged)",
       "category": "Bossing",
       "style": "Ranged",
       "slots": {
-        "weapon": [25865, 12926, 21902],
-        "head": [23971, 25376, 25377],
-        "body": [23975, 25379, 25380],
-        "legs": [23979, 25382, 25383],
+        "weapon": [25865, 20997, 12926, 21902],
+        "shield": [21000, 12610],
+        "head": [23971, 27226, 11826],
+        "body": [23975, 27229, 11828],
+        "legs": [23979, 27232, 11830],
         "hands": [26235, 7462],
         "boots": [13237, 12829],
         "neck": [19547, 6585],
-        "ring": [28307, 11773, 19550],
-        "cape": [22109, 10499]
+        "ring": [28310, 11771, 19550],
+        "cape": [28951, 22109, 10499]
       },
       "inventory": [
         {"id": 24635, "qty": 1, "optional": false},
         {"id": 2434, "qty": 4, "optional": false},
         {"id": 391, "qty": 12, "optional": false}
+      ]
+    },
+    "muspah_magic": {
+      "id": "muspah_magic",
+      "name": "Phantom Muspah (Magic Step-Back)",
+      "category": "Bossing",
+      "style": "Magic",
+      "slots": {
+        "weapon": [27275, 22323, 12899],
+        "shield": [27253, 12825, 6889],
+        "head": [21018, 26231, 4708],
+        "body": [21021, 26233, 4712],
+        "legs": [21024, 26235, 4714],
+        "hands": [19544, 7462],
+        "boots": [13235, 6920],
+        "neck": [12002, 6585],
+        "ring": [28313, 11770, 19550],
+        "cape": [21791, 2412]
+      },
+      "inventory": [
+        {"id": 24635, "qty": 1, "optional": false},
+        {"id": 2434, "qty": 3, "optional": false},
+        {"id": 391, "qty": 10, "optional": false}
+      ]
+    },
+    "hydra_ranged": {
+      "id": "hydra_ranged",
+      "name": "Alchemical Hydra (Ranged)",
+      "category": "Slayer",
+      "style": "Ranged",
+      "slots": {
+        "weapon": [20997, 12926, 25865, 21902],
+        "shield": [21000, 12610],
+        "head": [11865, 11864],
+        "body": [27229, 27354, 11828],
+        "legs": [27232, 27357, 11830],
+        "hands": [26235, 7462],
+        "boots": [13237, 12829],
+        "neck": [19547, 6585],
+        "ring": [28310, 11771, 19550],
+        "cape": [28951, 22109, 10499],
+        "ammo": [11212, 21326]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 4, "optional": false},
+        {"id": 391, "qty": 8, "optional": false}
+      ]
+    },
+    "hydra_melee": {
+      "id": "hydra_melee",
+      "name": "Alchemical Hydra (Melee)",
+      "category": "Slayer",
+      "style": "Melee",
+      "slots": {
+        "weapon": [22978, 26219, 12006],
+        "shield": [22322, 12954],
+        "head": [11865, 11864],
+        "body": [26384, 11832],
+        "legs": [26386, 11834],
+        "hands": [22981, 7462],
+        "boots": [13239, 11840],
+        "neck": [29801, 19553, 6585],
+        "ring": [28307, 11773],
+        "cape": [21295, 6570]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 4, "optional": false},
+        {"id": 391, "qty": 8, "optional": false}
+      ]
+    },
+    "graardor_melee": {
+      "id": "graardor_melee",
+      "name": "General Graardor (Melee)",
+      "category": "Bossing",
+      "style": "Melee",
+      "slots": {
+        "weapon": [22325, 26219, 12006, 4151],
+        "shield": [22322, 12954],
+        "head": [26382, 23230, 10828],
+        "body": [26384, 11832],
+        "legs": [26386, 11834],
+        "hands": [22981, 7462],
+        "boots": [13239, 11840],
+        "neck": [29801, 19553, 6585],
+        "ring": [28307, 11773],
+        "cape": [21295, 6570]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 4, "optional": false},
+        {"id": 391, "qty": 12, "optional": false}
+      ]
+    },
+    "graardor_ranged": {
+      "id": "graardor_ranged",
+      "name": "General Graardor (Ranged - Bowfa)",
+      "category": "Bossing",
+      "style": "Ranged",
+      "slots": {
+        "weapon": [25865, 20997],
+        "head": [23971, 27226],
+        "body": [23975, 27229],
+        "legs": [23979, 27232],
+        "hands": [26235, 7462],
+        "boots": [13237, 12829],
+        "neck": [19547, 6585],
+        "ring": [28310, 11771, 19550],
+        "cape": [28951, 22109, 10499]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 4, "optional": false},
+        {"id": 391, "qty": 12, "optional": false}
+      ]
+    },
+    "toa_melee": {
+      "id": "toa_melee",
+      "name": "Tombs of Amascut (Melee)",
+      "category": "Raids",
+      "style": "Melee",
+      "slots": {
+        "weapon": [26219, 22325, 25878, 12006],
+        "shield": [22322, 12954],
+        "head": [26382, 23230, 10828],
+        "body": [26384, 11832],
+        "legs": [26386, 11834],
+        "hands": [22981, 7462],
+        "boots": [13239, 11840],
+        "neck": [29801, 19553, 6585],
+        "ring": [28307, 11773],
+        "cape": [21295, 6570]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 3, "optional": false},
+        {"id": 391, "qty": 6, "optional": false}
+      ]
+    },
+    "toa_ranged": {
+      "id": "toa_ranged",
+      "name": "Tombs of Amascut (Ranged)",
+      "category": "Raids",
+      "style": "Ranged",
+      "slots": {
+        "weapon": [20997, 25865, 12926, 26374],
+        "shield": [21000, 12610],
+        "head": [27226, 23971, 11826],
+        "body": [27229, 23975, 11828],
+        "legs": [27232, 23979, 11830],
+        "hands": [26235, 7462],
+        "boots": [13237, 12829],
+        "neck": [19547, 6585],
+        "ring": [28310, 11771, 19550],
+        "cape": [28951, 22109, 10499],
+        "ammo": [11212, 21944]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 3, "optional": false},
+        {"id": 391, "qty": 6, "optional": false}
+      ]
+    },
+    "toa_magic": {
+      "id": "toa_magic",
+      "name": "Tombs of Amascut (Magic)",
+      "category": "Raids",
+      "style": "Magic",
+      "slots": {
+        "weapon": [27275, 22323, 12899],
+        "shield": [27253, 12825, 27251],
+        "head": [21018, 26231, 4708],
+        "body": [21021, 26233, 4712],
+        "legs": [21024, 26235, 4714],
+        "hands": [19544, 7462],
+        "boots": [13235, 6920],
+        "neck": [12002, 6585],
+        "ring": [28313, 11770, 19550],
+        "cape": [21791, 2412]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 3, "optional": false},
+        {"id": 391, "qty": 6, "optional": false}
+      ]
+    },
+    "cox_melee": {
+      "id": "cox_melee",
+      "name": "Chambers of Xeric (Melee)",
+      "category": "Raids",
+      "style": "Melee",
+      "slots": {
+        "weapon": [22325, 22978, 26219, 12006],
+        "shield": [22322, 12954],
+        "head": [26382, 23230, 10828],
+        "body": [26384, 11832],
+        "legs": [26386, 11834],
+        "hands": [22981, 7462],
+        "boots": [13239, 11840],
+        "neck": [29801, 19553, 6585],
+        "ring": [28307, 11773],
+        "cape": [21295, 6570]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 3, "optional": false},
+        {"id": 391, "qty": 6, "optional": false}
+      ]
+    },
+    "cox_ranged": {
+      "id": "cox_ranged",
+      "name": "Chambers of Xeric (Ranged)",
+      "category": "Raids",
+      "style": "Ranged",
+      "slots": {
+        "weapon": [20997, 25865, 12926, 26374],
+        "shield": [21000, 12610],
+        "head": [27226, 23971, 11826],
+        "body": [27229, 23975, 11828],
+        "legs": [27232, 23979, 11830],
+        "hands": [26235, 7462],
+        "boots": [13237, 12829],
+        "neck": [19547, 6585],
+        "ring": [28310, 11771, 19550],
+        "cape": [28951, 22109, 10499],
+        "ammo": [11212, 21944]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 3, "optional": false},
+        {"id": 391, "qty": 6, "optional": false}
+      ]
+    },
+    "cox_magic": {
+      "id": "cox_magic",
+      "name": "Chambers of Xeric (Magic)",
+      "category": "Raids",
+      "style": "Magic",
+      "slots": {
+        "weapon": [27275, 22323, 12899],
+        "shield": [27253, 12825],
+        "head": [21018, 26231, 4708],
+        "body": [21021, 26233, 4712],
+        "legs": [21024, 26235, 4714],
+        "hands": [19544, 7462],
+        "boots": [13235, 6920],
+        "neck": [12002, 6585],
+        "ring": [28313, 11770],
+        "cape": [21791, 2412]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 3, "optional": false},
+        {"id": 391, "qty": 6, "optional": false}
+      ]
+    },
+    "vardorvis_melee": {
+      "id": "vardorvis_melee",
+      "name": "Vardorvis (Melee)",
+      "category": "Bossing",
+      "style": "Melee",
+      "slots": {
+        "weapon": [28338, 22325, 26219, 25878, 12006, 4151],
+        "shield": [22322, 12954],
+        "head": [26382, 23230, 10828],
+        "body": [26384, 11832, 10551],
+        "legs": [26386, 11834, 21298],
+        "hands": [22981, 7462],
+        "boots": [13239, 11840],
+        "neck": [29801, 19553, 6585],
+        "ring": [28307, 11773],
+        "cape": [21295, 6570]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 4, "optional": false},
+        {"id": 391, "qty": 10, "optional": false}
+      ]
+    },
+    "duke_melee": {
+      "id": "duke_melee",
+      "name": "Duke Sucellus (Melee)",
+      "category": "Bossing",
+      "style": "Melee",
+      "slots": {
+        "weapon": [22325, 26219, 12006, 4151],
+        "shield": [22322, 12954],
+        "head": [26382, 23230, 10828],
+        "body": [26384, 11832],
+        "legs": [26386, 11834],
+        "hands": [22981, 7462],
+        "boots": [13239, 11840],
+        "neck": [29801, 19553, 6585],
+        "ring": [28307, 11773],
+        "cape": [21295, 6570]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 4, "optional": false},
+        {"id": 391, "qty": 10, "optional": false}
+      ]
+    },
+    "whisperer_magic": {
+      "id": "whisperer_magic",
+      "name": "The Whisperer (Magic)",
+      "category": "Bossing",
+      "style": "Magic",
+      "slots": {
+        "weapon": [27275, 22323, 12899],
+        "shield": [27253, 12825, 6889],
+        "head": [21018, 26231, 4708],
+        "body": [21021, 26233, 4712],
+        "legs": [21024, 26235, 4714],
+        "hands": [19544, 7462],
+        "boots": [13235, 6920],
+        "neck": [12002, 6585],
+        "ring": [28313, 11770],
+        "cape": [21791, 2412]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 3, "optional": false},
+        {"id": 391, "qty": 8, "optional": false}
+      ]
+    },
+    "leviathan_ranged": {
+      "id": "leviathan_ranged",
+      "name": "The Leviathan (Ranged)",
+      "category": "Bossing",
+      "style": "Ranged",
+      "slots": {
+        "weapon": [25865, 26374, 12926],
+        "shield": [21000, 12610],
+        "head": [27226, 23971, 11826],
+        "body": [27229, 23975, 11828],
+        "legs": [27232, 23979, 11830],
+        "hands": [26235, 7462],
+        "boots": [13237, 12829],
+        "neck": [19547, 6585],
+        "ring": [28310, 11771],
+        "cape": [28951, 22109, 10499],
+        "ammo": [21944, 21946]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 4, "optional": false},
+        {"id": 391, "qty": 10, "optional": false}
+      ]
+    },
+    "cerberus_melee": {
+      "id": "cerberus_melee",
+      "name": "Cerberus (Melee)",
+      "category": "Slayer",
+      "style": "Melee",
+      "slots": {
+        "weapon": [22325, 26219, 12006, 4151],
+        "shield": [22322, 12954],
+        "head": [11865, 11864],
+        "body": [26384, 11832],
+        "legs": [26386, 11834],
+        "hands": [22981, 7462],
+        "boots": [13239, 11840],
+        "neck": [29801, 19553, 6585],
+        "ring": [28307, 11773],
+        "cape": [21295, 6570]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 6, "optional": false},
+        {"id": 391, "qty": 8, "optional": false}
       ]
     },
     "kraken_slayer": {
@@ -100,4 +509,3 @@
     }
   }
 }
-

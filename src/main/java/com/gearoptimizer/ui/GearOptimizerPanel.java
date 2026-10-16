@@ -6,6 +6,7 @@ import com.gearoptimizer.PersistentBankCache;
 import com.gearoptimizer.SetupOptimizer;
 import com.gearoptimizer.SetupOptimizer.OptimizationResult;
 import com.gearoptimizer.model.ActivityGear;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.PluginPanel;
@@ -27,8 +28,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import net.runelite.client.callback.ClientThread;
 
 public class GearOptimizerPanel extends PluginPanel
 {
@@ -39,11 +40,13 @@ public class GearOptimizerPanel extends PluginPanel
 	private final ItemManager itemManager;
 	private final ClientThread clientThread;
 
+	private final JComboBox<String> styleCombo = new JComboBox<>(new String[]{"All Styles", "Melee", "Ranged", "Magic"});
 	private final JComboBox<ActivityItem> activityCombo = new JComboBox<>();
 	private final JLabel bankStatusLabel = new JLabel("Bank: 0 items cached");
 	private final JLabel messageLabel = new JLabel("Select an activity above");
 	private final JPanel resultsPanel = new JPanel();
-	private final JButton copyButton = new JButton("Copy to Inventory Setups");
+	private final JButton directButton = new JButton("Direct Add to Inventory Setups");
+	private final JButton copyButton = new JButton("Copy Setup to Clipboard");
 
 	private OptimizationResult currentResult;
 
@@ -51,11 +54,13 @@ public class GearOptimizerPanel extends PluginPanel
 	{
 		final String id;
 		final String name;
+		final String style;
 
-		ActivityItem(String id, String name)
+		ActivityItem(String id, String name, String style)
 		{
 			this.id = id;
 			this.name = name;
+			this.style = style;
 		}
 
 		@Override
@@ -97,6 +102,8 @@ public class GearOptimizerPanel extends PluginPanel
 
 		add(buildBottomPanel(), BorderLayout.SOUTH);
 
+		styleCombo.addActionListener(e -> refreshActivities());
+
 		refreshActivities();
 		updateBankStatus();
 	}
@@ -116,12 +123,17 @@ public class GearOptimizerPanel extends PluginPanel
 		bankStatusLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		bankStatusLabel.setAlignmentX(LEFT_ALIGNMENT);
 
+		styleCombo.setAlignmentX(LEFT_ALIGNMENT);
+		styleCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
+
 		activityCombo.setAlignmentX(LEFT_ALIGNMENT);
-		activityCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+		activityCombo.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
 
 		JButton optimizeButton = new JButton("Generate Best Setup");
 		optimizeButton.setAlignmentX(LEFT_ALIGNMENT);
 		optimizeButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+		optimizeButton.setBackground(new Color(40, 110, 60));
+		optimizeButton.setForeground(Color.WHITE);
 		optimizeButton.addActionListener(e -> runOptimization());
 
 		messageLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
@@ -132,10 +144,22 @@ public class GearOptimizerPanel extends PluginPanel
 		panel.add(Box.createVerticalStrut(4));
 		panel.add(bankStatusLabel);
 		panel.add(Box.createVerticalStrut(10));
-		panel.add(new JLabel("Target Activity / Boss:"));
-		panel.add(Box.createVerticalStrut(4));
-		panel.add(activityCombo);
+
+		JLabel styleLabel = new JLabel("Combat Style Filter:");
+		styleLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+		styleLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
+		panel.add(styleLabel);
+		panel.add(Box.createVerticalStrut(3));
+		panel.add(styleCombo);
 		panel.add(Box.createVerticalStrut(8));
+
+		JLabel activityLabel = new JLabel("Target Activity / Boss:");
+		activityLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+		activityLabel.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 11));
+		panel.add(activityLabel);
+		panel.add(Box.createVerticalStrut(3));
+		panel.add(activityCombo);
+		panel.add(Box.createVerticalStrut(10));
 		panel.add(optimizeButton);
 		panel.add(Box.createVerticalStrut(8));
 		panel.add(messageLabel);
@@ -151,21 +175,40 @@ public class GearOptimizerPanel extends PluginPanel
 		panel.setBackground(ColorScheme.DARK_GRAY_COLOR);
 		panel.setBorder(new EmptyBorder(8, 0, 0, 0));
 
+		directButton.setEnabled(false);
+		directButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 30));
+		directButton.setBackground(new Color(30, 80, 130));
+		directButton.setForeground(Color.WHITE);
+		directButton.addActionListener(e -> {
+			if (currentResult != null)
+			{
+				boolean ok = exporter.directImportToInventorySetups(currentResult);
+				if (ok)
+				{
+					messageLabel.setText("Added directly to Inventory Setups!");
+				}
+				else
+				{
+					messageLabel.setText("Saved to config & copied to clipboard.");
+				}
+			}
+		});
+
 		copyButton.setEnabled(false);
-		copyButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
+		copyButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 28));
 		copyButton.addActionListener(e -> {
 			if (currentResult != null)
 			{
 				boolean ok = exporter.copySetupToClipboard(currentResult);
 				if (ok)
 				{
-					messageLabel.setText("Copied! Paste into Inventory Setups.");
+					messageLabel.setText("Copied setup (JSON) to clipboard!");
 				}
 			}
 		});
 
 		JButton updateDbButton = new JButton("Check Wiki Database Update");
-		updateDbButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 26));
+		updateDbButton.setMaximumSize(new Dimension(Integer.MAX_VALUE, 24));
 		updateDbButton.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
 		updateDbButton.addActionListener(e -> {
 			dbManager.checkRemoteUpdate();
@@ -173,6 +216,8 @@ public class GearOptimizerPanel extends PluginPanel
 			messageLabel.setText("Checked database updates (v" + dbManager.getVersion() + ")");
 		});
 
+		panel.add(directButton);
+		panel.add(Box.createVerticalStrut(4));
 		panel.add(copyButton);
 		panel.add(Box.createVerticalStrut(4));
 		panel.add(updateDbButton);
@@ -182,12 +227,13 @@ public class GearOptimizerPanel extends PluginPanel
 
 	public void refreshActivities()
 	{
+		String style = (String) styleCombo.getSelectedItem();
 		DefaultComboBoxModel<ActivityItem> model = new DefaultComboBoxModel<>();
-		Map<String, ActivityGear> activities = dbManager.getActivities();
+		List<ActivityGear> activities = dbManager.getActivitiesByStyle(style);
 
-		for (ActivityGear activity : activities.values())
+		for (ActivityGear activity : activities)
 		{
-			model.addElement(new ActivityItem(activity.getId(), activity.getName()));
+			model.addElement(new ActivityItem(activity.getId(), activity.getName(), activity.getStyle()));
 		}
 
 		activityCombo.setModel(model);
@@ -246,12 +292,23 @@ public class GearOptimizerPanel extends PluginPanel
 				catch (Exception ignored) {}
 			}
 
+			// Perform direct import / export
+			boolean directlyImported = exporter.directImportToInventorySetups(result);
+
 			SwingUtilities.invokeLater(() -> {
 				currentResult = result;
 				displayResults(result, names);
+				directButton.setEnabled(true);
 				copyButton.setEnabled(true);
-				exporter.copySetupToClipboard(result);
-				messageLabel.setText("Auto-copied to clipboard!");
+
+				if (directlyImported && exporter.isInventorySetupsInstalled())
+				{
+					messageLabel.setText("Optimized & added to Inventory Setups!");
+				}
+				else
+				{
+					messageLabel.setText("Optimized! Auto-copied to clipboard.");
+				}
 			});
 		});
 	}
@@ -268,6 +325,41 @@ public class GearOptimizerPanel extends PluginPanel
 		}
 		else
 		{
+			// Combat Style Badge Header
+			String style = result.getActivity().getStyle();
+			Color styleColor = ColorScheme.LIGHT_GRAY_COLOR;
+			if ("Melee".equalsIgnoreCase(style))
+			{
+				styleColor = new Color(240, 110, 70); // Warm Flame Orange/Red
+			}
+			else if ("Ranged".equalsIgnoreCase(style))
+			{
+				styleColor = new Color(70, 210, 100); // Ranger Green
+			}
+			else if ("Magic".equalsIgnoreCase(style))
+			{
+				styleColor = new Color(90, 180, 255); // Mystic Cyan/Blue
+			}
+
+			JPanel headerPanel = new JPanel(new BorderLayout());
+			headerPanel.setBackground(ColorScheme.DARK_GRAY_COLOR);
+			headerPanel.setBorder(new EmptyBorder(2, 4, 6, 4));
+
+			JLabel styleHeader = new JLabel(result.getActivity().getName());
+			styleHeader.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
+			styleHeader.setForeground(styleColor);
+			headerPanel.add(styleHeader, BorderLayout.WEST);
+
+			int equippedCount = result.getEquippedItems().size();
+			int totalSlots = result.getActivity().getSlots().size();
+			JLabel matchLabel = new JLabel(equippedCount + "/" + totalSlots + " Slots", SwingConstants.RIGHT);
+			matchLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 11));
+			matchLabel.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+			headerPanel.add(matchLabel, BorderLayout.EAST);
+
+			resultsPanel.add(headerPanel);
+			resultsPanel.add(Box.createVerticalStrut(4));
+
 			for (Map.Entry<String, Integer> entry : result.getEquippedItems().entrySet())
 			{
 				String slot = entry.getKey();
@@ -317,4 +409,3 @@ public class GearOptimizerPanel extends PluginPanel
 		return Character.toUpperCase(str.charAt(0)) + str.substring(1);
 	}
 }
-

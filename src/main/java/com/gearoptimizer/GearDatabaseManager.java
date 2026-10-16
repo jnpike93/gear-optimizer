@@ -20,7 +20,10 @@ import java.io.Reader;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ScheduledExecutorService;
 
@@ -159,6 +162,39 @@ public class GearDatabaseManager
 	public Map<String, ActivityGear> getActivities()
 	{
 		return database != null ? database.getActivities() : Collections.emptyMap();
+	}
+
+	public List<ActivityGear> getAllActivities()
+	{
+		if (database == null || database.getActivities() == null)
+		{
+			return Collections.emptyList();
+		}
+		List<ActivityGear> list = new ArrayList<>(database.getActivities().values());
+		list.sort(Comparator.comparing(ActivityGear::getName));
+		return list;
+	}
+
+	public List<ActivityGear> getActivitiesByStyle(String style)
+	{
+		if (database == null || database.getActivities() == null)
+		{
+			return Collections.emptyList();
+		}
+		if (style == null || style.equalsIgnoreCase("all") || style.equalsIgnoreCase("all styles"))
+		{
+			return getAllActivities();
+		}
+		List<ActivityGear> filtered = new ArrayList<>();
+		for (ActivityGear act : database.getActivities().values())
+		{
+			if (style.equalsIgnoreCase(act.getStyle()))
+			{
+				filtered.add(act);
+			}
+		}
+		filtered.sort(Comparator.comparing(ActivityGear::getName));
+		return filtered;
 	}
 
 	public ActivityGear getActivity(String id)
