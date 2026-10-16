@@ -158,5 +158,79 @@ public class SetupOptimizerTest
 		// Dragonfire shield correctly selected over antifire shield
 		assertEquals(Integer.valueOf(11283), result.getEquippedItems().get("shield"));
 	}
+
+	@Test
+	public void testDegradedBloodMoonArmorDetected()
+	{
+		// Player owns degraded/used Blood Moon armor:
+		// Used helm: 29047, Used chest: 29043, Used tassets: 29045
+		when(bankCache.hasItem(29047)).thenReturn(true);
+		when(bankCache.hasItem(29043)).thenReturn(true);
+		when(bankCache.hasItem(29045)).thenReturn(true);
+
+		// Guide only lists clean/base IDs: 29028, 29022, 29025
+		Map<String, List<Integer>> slots = new HashMap<>();
+		slots.put("head", Arrays.asList(26382, 29028));
+		slots.put("body", Arrays.asList(26384, 29022));
+		slots.put("legs", Arrays.asList(26386, 29025));
+
+		ActivityGear activity = new ActivityGear(
+			"vorkath_melee", "Vorkath (Melee)", "Bossing", "Melee",
+			slots,
+			Collections.emptyList()
+		);
+
+		OptimizationResult result = optimizer.optimize(activity);
+
+		// Degraded Blood Moon gear correctly detected and chosen
+		assertEquals(Integer.valueOf(29047), result.getEquippedItems().get("head"));
+		assertEquals(Integer.valueOf(29043), result.getEquippedItems().get("body"));
+		assertEquals(Integer.valueOf(29045), result.getEquippedItems().get("legs"));
+	}
+
+	@Test
+	public void testBarrowsPlatelegsInterchangeableDetection()
+	{
+		// Guide recommends Torag's platelegs (4751) as the representative "Barrows platelegs"
+		Map<String, List<Integer>> slots = new HashMap<>();
+		slots.put("legs", Arrays.asList(26386, 11834, 4751));
+
+		// Scenario A: Player owns Dharok's platelegs 100 (4898)
+		when(bankCache.hasItem(4898)).thenReturn(true);
+
+		ActivityGear activity = new ActivityGear(
+			"vorkath_melee", "Vorkath (Melee)", "Bossing", "Melee",
+			slots,
+			Collections.emptyList()
+		);
+
+		OptimizationResult result = optimizer.optimize(activity);
+
+		// Dharok's platelegs 100 correctly selected as Barrows platelegs
+		assertEquals(Integer.valueOf(4898), result.getEquippedItems().get("legs"));
+	}
+
+	@Test
+	public void testAntifireShieldSelectedWhenDFSNotOwned()
+	{
+		// Player owns Anti-dragon / Antifire shield (1540), but not DFS (11283) or Avernic (22322)
+		when(bankCache.hasItem(22322)).thenReturn(false);
+		when(bankCache.hasItem(11283)).thenReturn(false);
+		when(bankCache.hasItem(11284)).thenReturn(false);
+		when(bankCache.hasItem(1540)).thenReturn(true);
+
+		Map<String, List<Integer>> slots = new HashMap<>();
+		slots.put("shield", Arrays.asList(22322, 11283, 12954, 1540));
+
+		ActivityGear activity = new ActivityGear(
+			"vorkath_melee", "Vorkath (Melee)", "Bossing", "Melee",
+			slots,
+			Collections.emptyList()
+		);
+
+		OptimizationResult result = optimizer.optimize(activity);
+
+		assertEquals(Integer.valueOf(1540), result.getEquippedItems().get("shield"));
+	}
 }
 

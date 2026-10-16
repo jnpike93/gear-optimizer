@@ -68,15 +68,20 @@ const ALIAS_MAP = {
   'ring of suffering (i)': [19550],
   'ring of suffering (ri)': [19550],
   'lightbearer': [25975],
-  'blood moon helm': [29028],
-  'blood moon chestplate': [29022],
-  'blood moon tassets': [29025],
-  'blue moon helm': [29034],
-  'blue moon chestplate': [29031],
-  'blue moon tassets': [29037],
-  'eclipse moon helm': [29019],
-  'eclipse moon chestplate': [29013],
-  'eclipse moon tassets': [29016],
+  'barrows platelegs': [4751, 4970, 4971, 4972, 4973, 4722, 4898, 4899, 4900, 4901, 4759, 4994, 4995, 4996, 4997, 4730, 4922, 4923, 4924, 4925],
+  'barrows legs': [4751, 4970, 4971, 4972, 4973, 4722, 4898, 4899, 4900, 4901, 4759, 4994, 4995, 4996, 4997, 4730, 4922, 4923, 4924, 4925],
+  'barrows platebody': [4749, 4964, 4965, 4966, 4967, 4720, 4892, 4893, 4894, 4895, 4728, 4916, 4917, 4918, 4919, 4757, 4988, 4989, 4990, 4991],
+  'barrows body': [4749, 4964, 4965, 4966, 4967, 4720, 4892, 4893, 4894, 4895, 4728, 4916, 4917, 4918, 4919, 4757, 4988, 4989, 4990, 4991],
+  'barrows helm': [4745, 4952, 4953, 4954, 4955, 4716, 4880, 4881, 4882, 4883, 4724, 4904, 4905, 4906, 4907, 4753, 4976, 4977, 4978, 4979],
+  'blood moon helm': [29028, 29047, 29073, 29848],
+  'blood moon chestplate': [29022, 29043, 29067, 29846],
+  'blood moon tassets': [29025, 29045, 29070, 29847],
+  'blue moon helm': [29034, 29053, 29079],
+  'blue moon chestplate': [29031, 29051, 29076],
+  'blue moon tassets': [29037, 29055, 29082],
+  'eclipse moon helm': [29019, 29043, 29064],
+  'eclipse moon chestplate': [29013, 29039, 29058],
+  'eclipse moon tassets': [29016, 29041, 29061],
   'justiciar faceguard': [22326],
   'justiciar chestguard': [22327],
   'justiciar legguards': [22328],
@@ -106,13 +111,18 @@ const ALIAS_MAP = {
   'neitiznot faceguard': [23230],
   'helm of neitiznot': [10828],
   'serpentine helm': [12931],
-  "torag's helm": [4745],
-  "torag's platebody": [4749],
-  "torag's platelegs": [4751],
-  "dharok's helm": [4716],
-  "dharok's platebody": [4720],
-  "dharok's platelegs": [4722],
-  "guthan's helm": [4724],
+  "torag's helm": [4745, 4952, 4953, 4954, 4955, 4956, 23637],
+  "torag's platebody": [4749, 4964, 4965, 4966, 4967, 4968],
+  "torag's platelegs": [4751, 4970, 4971, 4972, 4973, 4974, 23634],
+  "dharok's helm": [4716, 4880, 4881, 4882, 4883, 4884, 23639],
+  "dharok's platebody": [4720, 4892, 4893, 4894, 4895, 4896, 25515],
+  "dharok's platelegs": [4722, 4898, 4899, 4900, 4901, 4902, 23633],
+  "guthan's helm": [4724, 4904, 4905, 4906, 4907, 4908, 23638],
+  "guthan's platebody": [4728, 4916, 4917, 4918, 4919, 4920],
+  "guthan's chainskirt": [4730, 4922, 4923, 4924, 4925, 4926],
+  "verac's helm": [4753, 4976, 4977, 4978, 4979, 4980, 23636],
+  "verac's brassard": [4757, 4988, 4989, 4990, 4991, 4992, 27190],
+  "verac's plateskirt": [4759, 4994, 4995, 4996, 4997, 4998, 23635],
   "guthan's platebody": [4728],
   "guthan's chainskirt": [4730],
   "verac's helm": [4753],
@@ -224,9 +234,12 @@ function parseSlotItems(lineValue, nameToId) {
     // Check for {{plink|Item|pic=RealItem}}
     const plinkMatch = itemToken.match(/\{\{plink\|([^|}]+)(?:\|pic=([^|}]+))?(?:\|txt=([^|}]+))?[^}]*\}\}/i);
     if (plinkMatch) {
-      const primaryName = plinkMatch[2] || plinkMatch[1];
-      const resolved = resolveItemIds(primaryName, nameToId);
-      ids.push(...resolved);
+      if (plinkMatch[1]) {
+        ids.push(...resolveItemIds(plinkMatch[1], nameToId));
+      }
+      if (plinkMatch[2]) {
+        ids.push(...resolveItemIds(plinkMatch[2], nameToId));
+      }
       continue;
     }
 

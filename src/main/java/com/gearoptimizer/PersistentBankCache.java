@@ -76,6 +76,11 @@ public class PersistentBankCache
 		return cachedBankItemIds.contains(canonicalId);
 	}
 
+	public Set<Integer> getCachedItemIds()
+	{
+		return new HashSet<>(cachedBankItemIds);
+	}
+
 	public int getItemCount()
 	{
 		return cachedBankItemIds.size();

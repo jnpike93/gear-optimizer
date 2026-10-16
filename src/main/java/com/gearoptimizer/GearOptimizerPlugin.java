@@ -14,6 +14,7 @@ import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.game.ItemVariationMapping;
 import net.runelite.client.plugins.Plugin;
 import net.runelite.client.plugins.PluginDescriptor;
 import net.runelite.client.ui.ClientToolbar;
@@ -23,6 +24,7 @@ import net.runelite.client.util.ImageUtil;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
 import java.awt.image.BufferedImage;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -64,6 +66,10 @@ public class GearOptimizerPlugin extends Plugin
 	private GearOptimizerPanel panel;
 	private NavigationButton navButton;
 
+	private final Set<Integer> bankItemIds = new HashSet<>();
+	private final Set<Integer> invItemIds = new HashSet<>();
+	private final Set<Integer> equipItemIds = new HashSet<>();
+
 	@Override
 	protected void startUp() throws Exception
 	{
@@ -92,12 +98,15 @@ public class GearOptimizerPlugin extends Plugin
 
 		clientToolbar.addNavigation(navButton);
 
-		// If user was already logged in when enabling plugin, load their cache
+		// If user was already logged in when enabling plugin, load their cache and scan items
 		clientThread.invokeLater(() -> {
 			if (client.getGameState() == GameState.LOGGED_IN)
 			{
-				bankCache.loadForAccount(client.getAccountHash());
-				SwingUtilities.invokeLater(() -> panel.updateBankStatus());
+				long accountHash = client.getAccountHash();
+				bankCache.loadForAccount(accountHash);
+				bankItemIds.clear();
+				bankItemIds.addAll(bankCache.getCachedItemIds());
+				updateOwnedItems();
 			}
 		});
 	}
@@ -108,6 +117,9 @@ public class GearOptimizerPlugin extends Plugin
 		log.info("Shutting down Gear Optimizer plugin...");
 		clientToolbar.removeNavigation(navButton);
 		bankCache.clear();
+		bankItemIds.clear();
+		invItemIds.clear();
+		equipItemIds.clear();
 	}
 
 	@Subscribe
@@ -117,35 +129,114 @@ public class GearOptimizerPlugin extends Plugin
 		{
 			long accountHash = client.getAccountHash();
 			bankCache.loadForAccount(accountHash);
-			SwingUtilities.invokeLater(() -> panel.updateBankStatus());
+			bankItemIds.clear();
+			bankItemIds.addAll(bankCache.getCachedItemIds());
+			clientThread.invokeLater(this::updateOwnedItems);
 		}
 	}
 
 	@Subscribe
 	public void onItemContainerChanged(ItemContainerChanged event)
 	{
-		if (event.getContainerId() == InventoryID.BANK.getId())
+		int containerId = event.getContainerId();
+		if (containerId == InventoryID.BANK.getId()
+			|| containerId == InventoryID.INVENTORY.getId()
+			|| containerId == InventoryID.EQUIPMENT.getId())
 		{
-			ItemContainer bank = event.getItemContainer();
-			if (bank == null)
-			{
-				return;
-			}
+			updateOwnedItems();
+		}
+	}
 
-			Set<Integer> ownedItemIds = new HashSet<>();
+	private void updateOwnedItems()
+	{
+		if (client.getGameState() != GameState.LOGGED_IN)
+		{
+			return;
+		}
+
+		long accountHash = client.getAccountHash();
+
+		ItemContainer bank = client.getItemContainer(InventoryID.BANK);
+		if (bank != null)
+		{
+			bankItemIds.clear();
 			for (Item item : bank.getItems())
 			{
 				if (item != null && item.getId() > 0)
 				{
-					int canonical = itemManager.canonicalize(item.getId());
-					ownedItemIds.add(canonical);
+					addItemAndVariations(bankItemIds, item.getId());
 				}
 			}
+		}
 
-			long accountHash = client.getAccountHash();
-			bankCache.save(ownedItemIds, accountHash);
+		ItemContainer inv = client.getItemContainer(InventoryID.INVENTORY);
+		if (inv != null)
+		{
+			invItemIds.clear();
+			for (Item item : inv.getItems())
+			{
+				if (item != null && item.getId() > 0)
+				{
+					addItemAndVariations(invItemIds, item.getId());
+				}
+			}
+		}
 
-			SwingUtilities.invokeLater(() -> panel.updateBankStatus());
+		ItemContainer equip = client.getItemContainer(InventoryID.EQUIPMENT);
+		if (equip != null)
+		{
+			equipItemIds.clear();
+			for (Item item : equip.getItems())
+			{
+				if (item != null && item.getId() > 0)
+				{
+					addItemAndVariations(equipItemIds, item.getId());
+				}
+			}
+		}
+
+		Set<Integer> allOwned = new HashSet<>();
+		allOwned.addAll(bankItemIds);
+		allOwned.addAll(invItemIds);
+		allOwned.addAll(equipItemIds);
+
+		bankCache.save(allOwned, accountHash);
+
+		SwingUtilities.invokeLater(() -> panel.updateBankStatus());
+	}
+
+	private void addItemAndVariations(Set<Integer> targetSet, int itemId)
+	{
+		targetSet.add(itemId);
+
+		int canonical = itemManager != null ? itemManager.canonicalize(itemId) : itemId;
+		targetSet.add(canonical);
+
+		try
+		{
+			int mappedBase = ItemVariationMapping.map(canonical);
+			targetSet.add(mappedBase);
+
+			Collection<Integer> variations = ItemVariationMapping.getVariations(mappedBase);
+			if (variations != null && !variations.isEmpty())
+			{
+				targetSet.addAll(variations);
+			}
+
+			int rawMapped = ItemVariationMapping.map(itemId);
+			if (rawMapped != mappedBase)
+			{
+				targetSet.add(rawMapped);
+				Collection<Integer> rawVars = ItemVariationMapping.getVariations(rawMapped);
+				if (rawVars != null && !rawVars.isEmpty())
+				{
+					targetSet.addAll(rawVars);
+				}
+			}
+		}
+		catch (Exception ignored)
+		{
+			// Fallback if ItemVariationMapping fails
 		}
 	}
 
