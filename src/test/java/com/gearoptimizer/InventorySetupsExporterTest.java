@@ -125,3 +125,4 @@ public class InventorySetupsExporterTest
 		assertEquals(28, setupObj.getAsJsonArray("inv").size());
 	}
 }
+

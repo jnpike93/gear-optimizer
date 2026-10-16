@@ -116,5 +116,47 @@ public class SetupOptimizerTest
 		assertEquals(1, result.getMissingInventory().size());
 		assertEquals(2452, result.getMissingInventory().get(0).getId());
 	}
+
+	@Test
+	public void testVorkathMeleeDetectsBloodMoonAndDragonfireShield()
+	{
+		// Player owns Blood Moon gear (helm: 29028, chest: 29022, legs: 29025)
+		// and Dragonfire shield (11283) or Antifire shield (1540)
+		when(bankCache.hasItem(29028)).thenReturn(true);
+		when(bankCache.hasItem(29022)).thenReturn(true);
+		when(bankCache.hasItem(29025)).thenReturn(true);
+		when(bankCache.hasItem(11283)).thenReturn(true);
+		when(bankCache.hasItem(1540)).thenReturn(true);
+
+		// Higher BIS tiers (Torva, Bandos, Avernic) are not owned
+		when(bankCache.hasItem(26382)).thenReturn(false);
+		when(bankCache.hasItem(26384)).thenReturn(false);
+		when(bankCache.hasItem(11832)).thenReturn(false);
+		when(bankCache.hasItem(26386)).thenReturn(false);
+		when(bankCache.hasItem(11834)).thenReturn(false);
+		when(bankCache.hasItem(22322)).thenReturn(false);
+
+		Map<String, List<Integer>> slots = new HashMap<>();
+		slots.put("head", Arrays.asList(26382, 23230, 29028, 10828));
+		slots.put("body", Arrays.asList(26384, 11832, 29022, 10551));
+		slots.put("legs", Arrays.asList(26386, 11834, 29025));
+		slots.put("shield", Arrays.asList(22322, 11283, 12954, 1540));
+
+		ActivityGear activity = new ActivityGear(
+			"vorkath_melee", "Vorkath (Melee)", "Bossing", "Melee",
+			slots,
+			Collections.emptyList()
+		);
+
+		OptimizationResult result = optimizer.optimize(activity);
+
+		// Blood moon gear correctly selected
+		assertEquals(Integer.valueOf(29028), result.getEquippedItems().get("head"));
+		assertEquals(Integer.valueOf(29022), result.getEquippedItems().get("body"));
+		assertEquals(Integer.valueOf(29025), result.getEquippedItems().get("legs"));
+
+		// Dragonfire shield correctly selected over antifire shield
+		assertEquals(Integer.valueOf(11283), result.getEquippedItems().get("shield"));
+	}
 }
 
