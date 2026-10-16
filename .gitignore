@@ -8,3 +8,6 @@ nbactions.xml
 nb-configuration.xml
 nbproject/
 *.class
+.vscode/
+credentials.properties
+*.log
