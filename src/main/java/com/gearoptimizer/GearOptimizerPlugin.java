@@ -71,7 +71,7 @@ public class GearOptimizerPlugin extends Plugin
 
 		dbManager.init();
 
-		panel = new GearOptimizerPanel(dbManager, optimizer, exporter, bankCache, itemManager);
+		panel = new GearOptimizerPanel(dbManager, optimizer, exporter, bankCache, itemManager, clientThread);
 
 		// Default placeholder icon (16x16 shield/sword)
 		BufferedImage icon = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);

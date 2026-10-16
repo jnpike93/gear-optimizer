@@ -20,12 +20,15 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.HashMap;
 import java.util.Map;
+import net.runelite.client.callback.ClientThread;
 
 public class GearOptimizerPanel extends PluginPanel
 {
@@ -34,6 +37,7 @@ public class GearOptimizerPanel extends PluginPanel
 	private final InventorySetupsExporter exporter;
 	private final PersistentBankCache bankCache;
 	private final ItemManager itemManager;
+	private final ClientThread clientThread;
 
 	private final JComboBox<ActivityItem> activityCombo = new JComboBox<>();
 	private final JLabel bankStatusLabel = new JLabel("Bank: 0 items cached");
@@ -66,7 +70,8 @@ public class GearOptimizerPanel extends PluginPanel
 		SetupOptimizer optimizer,
 		InventorySetupsExporter exporter,
 		PersistentBankCache bankCache,
-		ItemManager itemManager)
+		ItemManager itemManager,
+		ClientThread clientThread)
 	{
 		super(false);
 		this.dbManager = dbManager;
@@ -74,6 +79,7 @@ public class GearOptimizerPanel extends PluginPanel
 		this.exporter = exporter;
 		this.bankCache = bankCache;
 		this.itemManager = itemManager;
+		this.clientThread = clientThread;
 
 		setLayout(new BorderLayout());
 		setBackground(ColorScheme.DARK_GRAY_COLOR);
@@ -216,16 +222,41 @@ public class GearOptimizerPanel extends PluginPanel
 			return;
 		}
 
-		currentResult = optimizer.optimize(activity);
-		displayResults(currentResult);
-		copyButton.setEnabled(true);
+		messageLabel.setText("Optimizing gear...");
 
-		// Auto copy to clipboard
-		exporter.copySetupToClipboard(currentResult);
-		messageLabel.setText("Auto-copied to clipboard!");
+		clientThread.invokeLater(() -> {
+			OptimizationResult result = optimizer.optimize(activity);
+
+			// Pre-resolve item names on the ClientThread
+			Map<Integer, String> names = new HashMap<>();
+			for (int id : result.getEquippedItems().values())
+			{
+				try
+				{
+					names.put(id, itemManager.getItemComposition(id).getName());
+				}
+				catch (Exception ignored) {}
+			}
+			for (int id : result.getMissingBisItems().values())
+			{
+				try
+				{
+					names.put(id, itemManager.getItemComposition(id).getName());
+				}
+				catch (Exception ignored) {}
+			}
+
+			SwingUtilities.invokeLater(() -> {
+				currentResult = result;
+				displayResults(result, names);
+				copyButton.setEnabled(true);
+				exporter.copySetupToClipboard(result);
+				messageLabel.setText("Auto-copied to clipboard!");
+			});
+		});
 	}
 
-	private void displayResults(OptimizationResult result)
+	private void displayResults(OptimizationResult result, Map<Integer, String> itemNames)
 	{
 		resultsPanel.removeAll();
 
@@ -241,7 +272,7 @@ public class GearOptimizerPanel extends PluginPanel
 			{
 				String slot = entry.getKey();
 				int itemId = entry.getValue();
-				String itemName = itemManager.getItemComposition(itemId).getName();
+				String itemName = itemNames.getOrDefault(itemId, "Item " + itemId);
 
 				JPanel slotRow = new JPanel(new BorderLayout());
 				slotRow.setBackground(ColorScheme.DARKER_GRAY_COLOR);
@@ -264,7 +295,7 @@ public class GearOptimizerPanel extends PluginPanel
 				Integer bisId = result.getMissingBisItems().get(slot);
 				if (bisId != null && bisId != itemId)
 				{
-					String bisName = itemManager.getItemComposition(bisId).getName();
+					String bisName = itemNames.getOrDefault(bisId, "Item " + bisId);
 					JLabel upgradeLabel = new JLabel("BIS: " + bisName, SwingConstants.RIGHT);
 					upgradeLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 10));
 					upgradeLabel.setForeground(new Color(255, 175, 75));

@@ -55,3 +55,4 @@ scrapeWikiGear().catch(err => {
   console.error('[Wiki Scraper] Error during scraping:', err);
   process.exit(1);
 });
+
