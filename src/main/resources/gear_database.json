@@ -1,0 +1,103 @@
+{
+  "version": 20261015,
+  "last_updated": "2026-10-15T00:00:00Z",
+  "activities": {
+    "vorkath_ranged": {
+      "id": "vorkath_ranged",
+      "name": "Vorkath (Ranged)",
+      "category": "Bossing",
+      "style": "Ranged",
+      "slots": {
+        "weapon": [22324, 21902, 12269],
+        "shield": [22002, 11283, 2890],
+        "head": [25376, 25377, 11664],
+        "body": [25379, 25380, 13072],
+        "legs": [25382, 25383, 13073],
+        "hands": [26235, 8842, 7462],
+        "boots": [13237, 12829, 2577],
+        "neck": [19547, 6585, 1704],
+        "ring": [28307, 11773, 19550, 2572],
+        "ammo": [21944, 21946, 9242],
+        "cape": [22109, 10499]
+      },
+      "inventory": [
+        {"id": 24635, "qty": 1, "optional": false},
+        {"id": 22209, "qty": 1, "optional": false},
+        {"id": 12913, "qty": 1, "optional": false},
+        {"id": 2434, "qty": 3, "optional": false},
+        {"id": 3144, "qty": 6, "optional": false},
+        {"id": 391, "qty": 8, "optional": false}
+      ]
+    },
+    "zulrah_magic": {
+      "id": "zulrah_magic",
+      "name": "Zulrah (Magic)",
+      "category": "Bossing",
+      "style": "Magic",
+      "slots": {
+        "weapon": [27275, 22323, 12899, 11905],
+        "shield": [22003, 12825, 6889],
+        "head": [21018, 26231, 4708],
+        "body": [21021, 26233, 4712],
+        "legs": [21024, 26235, 4714],
+        "hands": [19544, 7462],
+        "boots": [13235, 6920, 2579],
+        "neck": [12002, 6585],
+        "ring": [28313, 11770, 19550, 2550],
+        "cape": [21791, 2412]
+      },
+      "inventory": [
+        {"id": 12913, "qty": 1, "optional": false},
+        {"id": 2434, "qty": 2, "optional": false},
+        {"id": 3144, "qty": 6, "optional": false},
+        {"id": 391, "qty": 10, "optional": false}
+      ]
+    },
+    "muspah_ranged": {
+      "id": "muspah_ranged",
+      "name": "Phantom Muspah (Ranged)",
+      "category": "Bossing",
+      "style": "Ranged",
+      "slots": {
+        "weapon": [25865, 12926, 21902],
+        "head": [23971, 25376, 25377],
+        "body": [23975, 25379, 25380],
+        "legs": [23979, 25382, 25383],
+        "hands": [26235, 7462],
+        "boots": [13237, 12829],
+        "neck": [19547, 6585],
+        "ring": [28307, 11773, 19550],
+        "cape": [22109, 10499]
+      },
+      "inventory": [
+        {"id": 24635, "qty": 1, "optional": false},
+        {"id": 2434, "qty": 4, "optional": false},
+        {"id": 391, "qty": 12, "optional": false}
+      ]
+    },
+    "kraken_slayer": {
+      "id": "kraken_slayer",
+      "name": "Cave Kraken (Magic)",
+      "category": "Slayer",
+      "style": "Magic",
+      "slots": {
+        "weapon": [22323, 12899, 11905],
+        "shield": [22003, 12825, 6889],
+        "head": [11865, 11864, 21018],
+        "body": [21021, 26233, 4712],
+        "legs": [21024, 26235, 4714],
+        "hands": [19544, 7462],
+        "boots": [13235, 6920],
+        "neck": [12002, 6585],
+        "ring": [28313, 11770, 2550],
+        "cape": [21791, 2412]
+      },
+      "inventory": [
+        {"id": 2434, "qty": 2, "optional": false},
+        {"id": 3144, "qty": 4, "optional": false},
+        {"id": 391, "qty": 8, "optional": false}
+      ]
+    }
+  }
+}
+
