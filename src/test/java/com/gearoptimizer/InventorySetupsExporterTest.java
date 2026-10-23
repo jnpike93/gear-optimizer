@@ -6,7 +6,6 @@ import com.gearoptimizer.model.InventoryItem;
 import com.gearoptimizer.model.InventorySetupPortable;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.plugins.PluginManager;
 import org.junit.Before;
@@ -147,6 +146,80 @@ public class InventorySetupsExporterTest
 			org.mockito.ArgumentMatchers.eq("inventorysetups"),
 			org.mockito.ArgumentMatchers.startsWith("setupsV3_"),
 			org.mockito.ArgumentMatchers.anyString()
+		);
+	}
+
+	@Test
+	public void testDirectImportProtectsExistingUserSetup()
+	{
+		ActivityGear activity = new ActivityGear(
+			"vorkath", "Vorkath", "Bossing", "Ranged",
+			Collections.emptyMap(),
+			Collections.emptyList()
+		);
+
+		OptimizationResult result = OptimizationResult.builder()
+			.activity(activity)
+			.equippedItems(Collections.singletonMap("weapon", 21902))
+			.availableInventory(Collections.emptyList())
+			.build();
+
+		// Simulate existing custom user setup in configManager
+		String userSetupJson = "{\"name\":\"Vorkath\",\"notes\":\"My custom personal vorkath setup\"}";
+		org.mockito.Mockito.when(configManager.getConfiguration(
+			org.mockito.ArgumentMatchers.eq("inventorysetups"),
+			org.mockito.ArgumentMatchers.startsWith("setupsV3_")
+		)).thenReturn(userSetupJson);
+		org.mockito.Mockito.when(configManager.getConfiguration(
+			org.mockito.ArgumentMatchers.eq("inventorysetups"),
+			org.mockito.ArgumentMatchers.eq("setupsOrderV3_")
+		)).thenReturn("[]");
+
+		boolean ok = exporter.directImportToInventorySetups(result);
+		assertTrue("Direct import must succeed", ok);
+
+		// Must save with " (Wiki)" suffix to prevent overwriting user's custom setup
+		org.mockito.Mockito.verify(configManager).setConfiguration(
+			org.mockito.ArgumentMatchers.eq("inventorysetups"),
+			org.mockito.ArgumentMatchers.anyString(),
+			org.mockito.ArgumentMatchers.contains("Vorkath (Wiki)")
+		);
+	}
+
+	@Test
+	public void testDirectImportUpdatesOwnSetupInPlace()
+	{
+		ActivityGear activity = new ActivityGear(
+			"vorkath", "Vorkath", "Bossing", "Ranged",
+			Collections.emptyMap(),
+			Collections.emptyList()
+		);
+
+		OptimizationResult result = OptimizationResult.builder()
+			.activity(activity)
+			.equippedItems(Collections.singletonMap("weapon", 21902))
+			.availableInventory(Collections.emptyList())
+			.build();
+
+		// Simulate existing gear-optimizer setup in configManager
+		String ownSetupJson = "{\"name\":\"Vorkath\",\"notes\":\"Optimized by RuneLite Gear Optimizer from OSRS Wiki recommendations\"}";
+		org.mockito.Mockito.when(configManager.getConfiguration(
+			org.mockito.ArgumentMatchers.eq("inventorysetups"),
+			org.mockito.ArgumentMatchers.startsWith("setupsV3_")
+		)).thenReturn(ownSetupJson);
+		org.mockito.Mockito.when(configManager.getConfiguration(
+			org.mockito.ArgumentMatchers.eq("inventorysetups"),
+			org.mockito.ArgumentMatchers.eq("setupsOrderV3_")
+		)).thenReturn("[]");
+
+		boolean ok = exporter.directImportToInventorySetups(result);
+		assertTrue("Direct import must succeed", ok);
+
+		// Must keep original name when updating its own setup in place
+		org.mockito.Mockito.verify(configManager).setConfiguration(
+			org.mockito.ArgumentMatchers.eq("inventorysetups"),
+			org.mockito.ArgumentMatchers.anyString(),
+			org.mockito.ArgumentMatchers.contains("\"name\":\"Vorkath\"")
 		);
 	}
 }

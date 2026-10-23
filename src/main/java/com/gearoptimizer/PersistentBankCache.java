@@ -8,10 +8,13 @@ import net.runelite.client.RuneLite;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 @Singleton
@@ -26,34 +29,39 @@ public class PersistentBankCache
 	private ScheduledExecutorService executor;
 
 	private final Set<Integer> cachedBankItemIds = new HashSet<>();
-	private long currentAccountHash = -1;
+	private final Object ioLock = new Object();
+	private final AtomicLong saveGeneration = new AtomicLong(0);
+	private volatile long currentAccountHash = -1;
 
 	public void loadForAccount(long accountHash)
 	{
 		this.currentAccountHash = accountHash;
 		File file = getAccountFile(accountHash);
 
-		if (file.exists())
+		synchronized (ioLock)
 		{
-			try
+			if (file.exists())
 			{
-				String json = Files.readString(file.toPath());
-				Set<Integer> loaded = gson.fromJson(json, new TypeToken<HashSet<Integer>>(){}.getType());
-				if (loaded != null)
+				try
 				{
-					synchronized (cachedBankItemIds)
+					String json = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+					Set<Integer> loaded = gson.fromJson(json, new TypeToken<HashSet<Integer>>(){}.getType());
+					if (loaded != null)
 					{
-						cachedBankItemIds.clear();
-						cachedBankItemIds.addAll(loaded);
+						synchronized (cachedBankItemIds)
+						{
+							cachedBankItemIds.clear();
+							cachedBankItemIds.addAll(loaded);
+						}
+						log.info("Loaded {} cached bank items for account ending in {}",
+							loaded.size(), getMaskedHash(accountHash));
+						return;
 					}
-					log.info("Loaded {} cached bank items for account ending in {}",
-						loaded.size(), getMaskedHash(accountHash));
-					return;
 				}
-			}
-			catch (Exception e)
-			{
-				log.warn("Failed to read bank cache file for account ending in {}", getMaskedHash(accountHash), e);
+				catch (Exception e)
+				{
+					log.warn("Failed to read bank cache file for account ending in {}", getMaskedHash(accountHash), e);
+				}
 			}
 		}
 
@@ -77,29 +85,41 @@ public class PersistentBankCache
 		updateInMemory(items);
 		this.currentAccountHash = accountHash;
 
+		final long generation = saveGeneration.incrementAndGet();
 		final Set<Integer> snapshot = new HashSet<>(items);
 		final String masked = getMaskedHash(accountHash);
 
 		Runnable saveTask = () -> {
-			try
+			synchronized (ioLock)
 			{
-				DIRECTORY.mkdirs();
-				File file = getAccountFile(accountHash);
-				String json = gson.toJson(snapshot);
-				Files.writeString(file.toPath(), json);
+				// Skip stale write if a newer snapshot was already queued
+				if (generation < saveGeneration.get())
+				{
+					return;
+				}
 
-				// Restrict permissions to owner only
-				file.setReadable(false, false);
-				file.setReadable(true, true);
-				file.setWritable(false, false);
-				file.setWritable(true, true);
-				file.setExecutable(false, false);
+				try
+				{
+					DIRECTORY.mkdirs();
+					File file = getAccountFile(accountHash);
+					File tempFile = new File(DIRECTORY, "bank_" + accountHash + ".json.tmp");
+					String json = gson.toJson(snapshot);
+					Files.writeString(tempFile.toPath(), json, StandardCharsets.UTF_8);
+					Files.move(tempFile.toPath(), file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-				log.debug("Persisted {} bank items for account ending in {}", snapshot.size(), masked);
-			}
-			catch (Exception e)
-			{
-				log.error("Failed to save bank cache file for account ending in {}", masked, e);
+					// Restrict permissions to owner only
+					file.setReadable(false, false);
+					file.setReadable(true, true);
+					file.setWritable(false, false);
+					file.setWritable(true, true);
+					file.setExecutable(false, false);
+
+					log.debug("Persisted {} bank items for account ending in {}", snapshot.size(), masked);
+				}
+				catch (Exception e)
+				{
+					log.error("Failed to save bank cache file for account ending in {}", masked, e);
+				}
 			}
 		};
 
@@ -144,6 +164,11 @@ public class PersistentBankCache
 			cachedBankItemIds.clear();
 		}
 		currentAccountHash = -1;
+	}
+
+	public long getCurrentAccountHash()
+	{
+		return currentAccountHash;
 	}
 
 	private String getMaskedHash(long hash)

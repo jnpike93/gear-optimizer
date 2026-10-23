@@ -35,6 +35,8 @@ import java.util.concurrent.ScheduledExecutorService;
 
 public class GearOptimizerPanel extends PluginPanel
 {
+	private static final long serialVersionUID = 1L;
+
 	private final GearDatabaseManager dbManager;
 	private final SetupOptimizer optimizer;
 	private final InventorySetupsExporter exporter;
@@ -53,18 +55,23 @@ public class GearOptimizerPanel extends PluginPanel
 	private final JButton copyButton = new JButton("Copy Setup to Clipboard");
 
 	private OptimizationResult currentResult;
+	private volatile boolean active = true;
+
+	public void shutdown()
+	{
+		active = false;
+		currentResult = null;
+	}
 
 	private static class ActivityItem
 	{
 		final String id;
 		final String name;
-		final String style;
 
-		ActivityItem(String id, String name, String style)
+		ActivityItem(String id, String name)
 		{
 			this.id = id;
 			this.name = name;
-			this.style = style;
 		}
 
 		@Override
@@ -246,6 +253,10 @@ public class GearOptimizerPanel extends PluginPanel
 			Runnable checkTask = () -> {
 				dbManager.checkRemoteUpdate(true);
 				SwingUtilities.invokeLater(() -> {
+					if (!active)
+					{
+						return;
+					}
 					updateDbButton.setEnabled(true);
 					refreshActivities();
 					messageLabel.setText("Database up to date (v" + dbManager.getVersion() + ")");
@@ -279,7 +290,7 @@ public class GearOptimizerPanel extends PluginPanel
 
 		for (ActivityGear activity : activities)
 		{
-			model.addElement(new ActivityItem(activity.getId(), activity.getName(), activity.getStyle()));
+			model.addElement(new ActivityItem(activity.getId(), activity.getName()));
 		}
 
 		activityCombo.setModel(model);
@@ -358,6 +369,10 @@ public class GearOptimizerPanel extends PluginPanel
 			boolean directlyImported = exporter.directImportToInventorySetups(result);
 
 			SwingUtilities.invokeLater(() -> {
+				if (!active)
+				{
+					return;
+				}
 				currentResult = result;
 				displayResults(result, names);
 				directButton.setEnabled(true);

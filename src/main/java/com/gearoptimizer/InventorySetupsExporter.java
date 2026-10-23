@@ -178,13 +178,36 @@ public class InventorySetupsExporter
 			.anyMatch(p -> INVENTORY_SETUPS_PLUGIN_CLASS.equals(p.getClass().getName()));
 	}
 
-	private boolean persistToConfigManager(InventorySetupPortable portable)
+	private synchronized boolean persistToConfigManager(InventorySetupPortable portable)
 	{
+		if (portable == null || portable.getSetup() == null)
+		{
+			return false;
+		}
+
 		try
 		{
-			String setupName = portable.getSetup().getName();
+			InventorySetupSerializable setup = portable.getSetup();
+			String rawName = setup.getName();
+			String setupName = rawName != null ? rawName : "";
 			String hash = Hashing.murmur3_128().hashUnencodedChars(setupName).toString();
-			String serializableJson = gson.toJson(portable.getSetup());
+
+			// Overwrite Protection: Check if a setup already exists under this key.
+			// If it's a custom user setup not created by gear-optimizer, rename with " (Wiki)" suffix
+			// so the player's personal setups are never overwritten or destroyed.
+			String existingJson = configManager.getConfiguration(CONFIG_GROUP, CONFIG_KEY_SETUPS_V3_PREFIX + hash);
+			if (existingJson != null && !existingJson.isEmpty())
+			{
+				boolean isOwnSetup = existingJson.contains("Optimized by RuneLite Gear Optimizer");
+				if (!isOwnSetup)
+				{
+					setupName = setupName + " (Wiki)";
+					hash = Hashing.murmur3_128().hashUnencodedChars(setupName).toString();
+					setup.setName(setupName);
+				}
+			}
+
+			String serializableJson = gson.toJson(setup);
 
 			configManager.setConfiguration(CONFIG_GROUP, CONFIG_KEY_SETUPS_V3_PREFIX + hash, serializableJson);
 

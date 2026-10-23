@@ -6,19 +6,22 @@ import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.RuneLite;
 import net.runelite.client.config.ConfigManager;
+import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -27,7 +30,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
 @Singleton
@@ -36,6 +41,7 @@ public class GearDatabaseManager
 	private static final String DEFAULT_REMOTE_URL = "https://raw.githubusercontent.com/jnpike93/gear-optimizer/main/data/gear_database.json";
 	private static final File DIRECTORY = new File(RuneLite.RUNELITE_DIR, "gear-optimizer");
 	private static final File CACHE_FILE = new File(DIRECTORY, "gear_database.json");
+	private static final File TEMP_CACHE_FILE = new File(DIRECTORY, "gear_database.json.tmp");
 	private static final long MAX_REMOTE_PAYLOAD_BYTES = 10 * 1024 * 1024; // 10 MB maximum payload limit
 
 	private static final String CONFIG_GROUP = "gearoptimizer";
@@ -59,11 +65,37 @@ public class GearDatabaseManager
 
 	private volatile GearDatabase database;
 	private final Map<String, List<ActivityGear>> filterCache = new ConcurrentHashMap<>();
+	private final AtomicBoolean updateInProgress = new AtomicBoolean(false);
+	private volatile Call activeCall;
+	private volatile Future<?> initFuture;
 
 	public void init()
 	{
 		loadLocalDatabase();
-		executor.submit(() -> checkRemoteUpdate(false));
+		if (executor != null)
+		{
+			initFuture = executor.submit(() -> checkRemoteUpdate(false));
+		}
+	}
+
+	public synchronized void shutdown()
+	{
+		Future<?> future = this.initFuture;
+		this.initFuture = null;
+		if (future != null)
+		{
+			future.cancel(true);
+		}
+
+		Call call = this.activeCall;
+		this.activeCall = null;
+		if (call != null)
+		{
+			call.cancel();
+		}
+
+		filterCache.clear();
+		this.database = null;
 	}
 
 	public synchronized void loadLocalDatabase()
@@ -71,7 +103,7 @@ public class GearDatabaseManager
 		filterCache.clear();
 		if (CACHE_FILE.exists())
 		{
-			try (Reader reader = new FileReader(CACHE_FILE))
+			try (Reader reader = new FileReader(CACHE_FILE, StandardCharsets.UTF_8))
 			{
 				GearDatabase loaded = gson.fromJson(reader, GearDatabase.class);
 				if (loaded != null && loaded.getActivities() != null && !loaded.getActivities().isEmpty())
@@ -88,17 +120,27 @@ public class GearDatabaseManager
 		}
 
 		// Fallback: Read bundled snapshot inside the JAR
-		try (InputStream in = getClass().getResourceAsStream("/gear_database.json");
-		     Reader reader = new InputStreamReader(in))
+		try (InputStream in = getClass().getResourceAsStream("/gear_database.json"))
 		{
-			this.database = gson.fromJson(reader, GearDatabase.class);
-			log.info("Loaded bundled gear database from JAR (version: {})", database.getVersion());
+			if (in != null)
+			{
+				try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8))
+				{
+					GearDatabase loaded = gson.fromJson(reader, GearDatabase.class);
+					this.database = loaded;
+					if (loaded != null)
+					{
+						log.info("Loaded bundled gear database from JAR (version: {})", loaded.getVersion());
+					}
+					return;
+				}
+			}
 		}
 		catch (Exception e)
 		{
 			log.error("Failed to load bundled gear database", e);
-			this.database = new GearDatabase(0, "error", Collections.emptyMap());
 		}
+		this.database = new GearDatabase(0, "error", Collections.emptyMap());
 	}
 
 	public void checkRemoteUpdate()
@@ -108,6 +150,12 @@ public class GearDatabaseManager
 
 	public void checkRemoteUpdate(boolean force)
 	{
+		if (!updateInProgress.compareAndSet(false, true))
+		{
+			log.debug("Remote gear database update check already in progress; skipping duplicate request.");
+			return;
+		}
+
 		try
 		{
 			// Check if auto-sync is disabled by user in configuration
@@ -144,7 +192,9 @@ public class GearDatabaseManager
 				requestBuilder.header("If-None-Match", cachedEtag);
 			}
 
-			try (Response response = okHttpClient.newCall(requestBuilder.build()).execute())
+			Call call = okHttpClient.newCall(requestBuilder.build());
+			this.activeCall = call;
+			try (Response response = call.execute())
 			{
 				configManager.setConfiguration(CONFIG_GROUP, KEY_LAST_CHECK, Instant.now().toString());
 
@@ -154,27 +204,41 @@ public class GearDatabaseManager
 					return;
 				}
 
-				if (response.isSuccessful() && response.body() != null)
+				ResponseBody body = response.body();
+				if (response.isSuccessful() && body != null)
 				{
-					long contentLength = response.body().contentLength();
-					if (contentLength > MAX_REMOTE_PAYLOAD_BYTES)
+					long reportedLength = body.contentLength();
+					if (reportedLength > MAX_REMOTE_PAYLOAD_BYTES)
 					{
-						log.warn("Remote database response exceeds maximum allowed size ({} bytes). Aborting update.", contentLength);
+						log.warn("Remote database response Content-Length exceeds maximum allowed size ({} bytes). Aborting update.", reportedLength);
 						return;
 					}
 
-					try (InputStream in = response.body().byteStream();
-					     Reader bodyReader = new InputStreamReader(new BufferedInputStream(in, 8192)))
+					byte[] payloadBytes;
+					try (InputStream in = body.byteStream())
 					{
-						GearDatabase remote = gson.fromJson(bodyReader, GearDatabase.class);
+						payloadBytes = in.readNBytes((int) (MAX_REMOTE_PAYLOAD_BYTES + 1));
+					}
 
-						if (remote != null && remote.getVersion() > 0 && remote.getActivities() != null && !remote.getActivities().isEmpty())
+					if (payloadBytes.length > MAX_REMOTE_PAYLOAD_BYTES)
+					{
+						log.warn("Remote database payload stream exceeds maximum allowed size ({} bytes). Aborting update.", MAX_REMOTE_PAYLOAD_BYTES);
+						return;
+					}
+
+					String json = new String(payloadBytes, StandardCharsets.UTF_8);
+					GearDatabase remote = gson.fromJson(json, GearDatabase.class);
+
+					if (remote != null && remote.getVersion() > 0 && remote.getActivities() != null && !remote.getActivities().isEmpty())
+					{
+						synchronized (this)
 						{
 							if (database == null || remote.getVersion() > database.getVersion())
 							{
 								DIRECTORY.mkdirs();
 								String validatedJson = gson.toJson(remote);
-								Files.writeString(CACHE_FILE.toPath(), validatedJson);
+								Files.writeString(TEMP_CACHE_FILE.toPath(), validatedJson, StandardCharsets.UTF_8);
+								Files.move(TEMP_CACHE_FILE.toPath(), CACHE_FILE.toPath(), StandardCopyOption.REPLACE_EXISTING);
 								this.database = remote;
 								filterCache.clear();
 
@@ -187,23 +251,32 @@ public class GearDatabaseManager
 								log.info("Updated gear database to version {}", remote.getVersion());
 							}
 						}
-						else
-						{
-							log.warn("Remote gear database payload failed structural validation.");
-						}
+					}
+					else
+					{
+						log.warn("Remote gear database payload failed structural validation.");
 					}
 				}
+			}
+			finally
+			{
+				this.activeCall = null;
 			}
 		}
 		catch (Exception e)
 		{
 			log.debug("Unable to perform remote gear database check (operating fully offline): {}", e.getMessage());
 		}
+		finally
+		{
+			updateInProgress.set(false);
+		}
 	}
 
 	public Map<String, ActivityGear> getActivities()
 	{
-		return database != null ? database.getActivities() : Collections.emptyMap();
+		GearDatabase db = this.database;
+		return db != null && db.getActivities() != null ? db.getActivities() : Collections.emptyMap();
 	}
 
 	public List<ActivityGear> getAllActivities()
@@ -218,7 +291,8 @@ public class GearDatabaseManager
 
 	public List<ActivityGear> getActivities(String category, String style)
 	{
-		if (database == null || database.getActivities() == null)
+		GearDatabase db = this.database;
+		if (db == null || db.getActivities() == null)
 		{
 			return Collections.emptyList();
 		}
@@ -237,7 +311,7 @@ public class GearDatabaseManager
 		boolean allStyles = styleKey.equals("all") || styleKey.equals("all styles");
 
 		List<ActivityGear> filtered = new ArrayList<>();
-		for (ActivityGear act : database.getActivities().values())
+		for (ActivityGear act : db.getActivities().values())
 		{
 			if (act == null) continue;
 			boolean matchCategory = allCategories || (act.getCategory() != null && act.getCategory().equalsIgnoreCase(category));
@@ -250,17 +324,26 @@ public class GearDatabaseManager
 		}
 		filtered.sort(Comparator.comparing(a -> a.getName() != null ? a.getName() : a.getId()));
 		List<ActivityGear> unmodifiable = Collections.unmodifiableList(filtered);
-		filterCache.put(cacheKey, unmodifiable);
+
+		synchronized (this)
+		{
+			if (this.database == db)
+			{
+				filterCache.put(cacheKey, unmodifiable);
+			}
+		}
 		return unmodifiable;
 	}
 
 	public ActivityGear getActivity(String id)
 	{
-		return database != null && database.getActivities() != null ? database.getActivities().get(id) : null;
+		GearDatabase db = this.database;
+		return db != null && db.getActivities() != null ? db.getActivities().get(id) : null;
 	}
 
 	public long getVersion()
 	{
-		return database != null ? database.getVersion() : 0;
+		GearDatabase db = this.database;
+		return db != null ? db.getVersion() : 0;
 	}
 }

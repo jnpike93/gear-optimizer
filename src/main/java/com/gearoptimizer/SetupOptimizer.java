@@ -5,7 +5,6 @@ import com.gearoptimizer.model.InventoryItem;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.game.ItemVariationMapping;
 
@@ -91,7 +90,6 @@ public class SetupOptimizer
 
 	@Data
 	@Builder
-	@NoArgsConstructor
 	@AllArgsConstructor
 	public static class OptimizationResult
 	{

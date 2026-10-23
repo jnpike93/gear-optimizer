@@ -63,14 +63,17 @@ public class GearOptimizerPlugin extends Plugin
 	private InventorySetupsExporter exporter;
 
 	@Inject
+	@SuppressWarnings("unused")
 	private GearOptimizerConfig config;
 
 	@Inject
 	private ScheduledExecutorService executor;
 
-	private GearOptimizerPanel panel;
+	private volatile GearOptimizerPanel panel;
 	private NavigationButton navButton;
+	private volatile boolean active = false;
 
+	private final Object stateLock = new Object();
 	private final Set<Integer> bankItemIds = new HashSet<>();
 	private final Set<Integer> invItemIds = new HashSet<>();
 	private final Set<Integer> equipItemIds = new HashSet<>();
@@ -79,6 +82,7 @@ public class GearOptimizerPlugin extends Plugin
 	protected void startUp() throws Exception
 	{
 		log.info("Starting Gear Optimizer plugin...");
+		active = true;
 
 		dbManager.init();
 
@@ -97,14 +101,22 @@ public class GearOptimizerPlugin extends Plugin
 
 		// If user was already logged in when enabling plugin, load their cache and scan items
 		clientThread.invokeLater(() -> {
-			if (client.getGameState() == GameState.LOGGED_IN)
+			if (!active || client.getGameState() != GameState.LOGGED_IN)
 			{
-				long accountHash = client.getAccountHash();
-				bankCache.loadForAccount(accountHash);
+				return;
+			}
+			long accountHash = client.getAccountHash();
+			bankCache.loadForAccount(accountHash);
+			synchronized (stateLock)
+			{
+				if (!active)
+				{
+					return;
+				}
 				bankItemIds.clear();
 				bankItemIds.addAll(bankCache.getCachedItemIds());
-				updateOwnedItems(false);
 			}
+			updateOwnedItems(false);
 		});
 	}
 
@@ -112,44 +124,74 @@ public class GearOptimizerPlugin extends Plugin
 	protected void shutDown() throws Exception
 	{
 		log.info("Shutting down Gear Optimizer plugin...");
+		active = false;
 		clientToolbar.removeNavigation(navButton);
 		navButton = null;
-		panel = null;
-		bankCache.clear();
-		bankItemIds.clear();
-		invItemIds.clear();
-		equipItemIds.clear();
-	}
 
-	@Subscribe
-	public void onGameStateChanged(GameStateChanged event)
-	{
-		if (event.getGameState() == GameState.LOGGED_IN)
+		GearOptimizerPanel currentPanel = panel;
+		panel = null;
+		if (currentPanel != null)
 		{
-			long accountHash = client.getAccountHash();
-			bankCache.loadForAccount(accountHash);
-			bankItemIds.clear();
-			bankItemIds.addAll(bankCache.getCachedItemIds());
-			clientThread.invokeLater(() -> updateOwnedItems(false));
+			currentPanel.shutdown();
 		}
-		else if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING)
+
+		synchronized (stateLock)
 		{
 			bankItemIds.clear();
 			invItemIds.clear();
 			equipItemIds.clear();
 			bankCache.clear();
+		}
+		dbManager.shutdown();
+	}
+
+	@Subscribe
+	public void onGameStateChanged(GameStateChanged event)
+	{
+		if (!active)
+		{
+			return;
+		}
+
+		if (event.getGameState() == GameState.LOGGED_IN)
+		{
+			long accountHash = client.getAccountHash();
+			bankCache.loadForAccount(accountHash);
+			synchronized (stateLock)
+			{
+				bankItemIds.clear();
+				bankItemIds.addAll(bankCache.getCachedItemIds());
+			}
+			clientThread.invokeLater(() -> updateOwnedItems(false));
+		}
+		else if (event.getGameState() == GameState.LOGIN_SCREEN || event.getGameState() == GameState.HOPPING)
+		{
+			synchronized (stateLock)
+			{
+				bankItemIds.clear();
+				invItemIds.clear();
+				equipItemIds.clear();
+				bankCache.clear();
+			}
 			SwingUtilities.invokeLater(() -> {
-				if (panel != null)
+				GearOptimizerPanel currentPanel = panel;
+				if (currentPanel != null)
 				{
-					panel.updateBankStatus();
+					currentPanel.updateBankStatus();
 				}
 			});
 		}
 	}
 
 	@Subscribe
+	@SuppressWarnings("deprecation")
 	public void onItemContainerChanged(ItemContainerChanged event)
 	{
+		if (!active)
+		{
+			return;
+		}
+
 		int containerId = event.getContainerId();
 		boolean isBank = (containerId == InventoryID.BANK.getId());
 		boolean isInvOrEquip = (containerId == InventoryID.INVENTORY.getId() || containerId == InventoryID.EQUIPMENT.getId());
@@ -164,69 +206,85 @@ public class GearOptimizerPlugin extends Plugin
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private void updateOwnedItems(boolean persistToDisk)
 	{
-		if (client.getGameState() != GameState.LOGGED_IN)
+		if (!active || client.getGameState() != GameState.LOGGED_IN)
 		{
 			return;
 		}
 
 		long accountHash = client.getAccountHash();
+		Set<Integer> allOwned;
 
-		ItemContainer bank = client.getItemContainer(InventoryID.BANK);
-		if (bank != null)
+		synchronized (stateLock)
 		{
-			bankItemIds.clear();
-			for (Item item : bank.getItems())
+			if (!active)
 			{
-				if (item != null && item.getId() > 0)
+				return;
+			}
+
+			ItemContainer bank = client.getItemContainer(InventoryID.BANK);
+			if (bank != null)
+			{
+				bankItemIds.clear();
+				for (Item item : bank.getItems())
 				{
-					addItemAndVariations(bankItemIds, item.getId());
+					if (item != null && item.getId() > 0)
+					{
+						addItemAndVariations(bankItemIds, item.getId());
+					}
 				}
+			}
+
+			ItemContainer inv = client.getItemContainer(InventoryID.INVENTORY);
+			if (inv != null)
+			{
+				invItemIds.clear();
+				for (Item item : inv.getItems())
+				{
+					if (item != null && item.getId() > 0)
+					{
+						addItemAndVariations(invItemIds, item.getId());
+					}
+				}
+			}
+
+			ItemContainer equip = client.getItemContainer(InventoryID.EQUIPMENT);
+			if (equip != null)
+			{
+				equipItemIds.clear();
+				for (Item item : equip.getItems())
+				{
+					if (item != null && item.getId() > 0)
+					{
+						addItemAndVariations(equipItemIds, item.getId());
+					}
+				}
+			}
+
+			allOwned = new HashSet<>(bankItemIds.size() + invItemIds.size() + equipItemIds.size());
+			allOwned.addAll(bankItemIds);
+			allOwned.addAll(invItemIds);
+			allOwned.addAll(equipItemIds);
+
+			if (persistToDisk)
+			{
+				bankCache.save(allOwned, accountHash);
+			}
+			else
+			{
+				bankCache.updateInMemory(allOwned);
 			}
 		}
 
-		ItemContainer inv = client.getItemContainer(InventoryID.INVENTORY);
-		if (inv != null)
-		{
-			invItemIds.clear();
-			for (Item item : inv.getItems())
+		SwingUtilities.invokeLater(() -> {
+			GearOptimizerPanel currentPanel = panel;
+			if (currentPanel != null)
 			{
-				if (item != null && item.getId() > 0)
-				{
-					addItemAndVariations(invItemIds, item.getId());
-				}
+				currentPanel.updateBankStatus();
 			}
-		}
-
-		ItemContainer equip = client.getItemContainer(InventoryID.EQUIPMENT);
-		if (equip != null)
-		{
-			equipItemIds.clear();
-			for (Item item : equip.getItems())
-			{
-				if (item != null && item.getId() > 0)
-				{
-					addItemAndVariations(equipItemIds, item.getId());
-				}
-			}
-		}
-
-		Set<Integer> allOwned = new HashSet<>();
-		allOwned.addAll(bankItemIds);
-		allOwned.addAll(invItemIds);
-		allOwned.addAll(equipItemIds);
-
-		if (persistToDisk)
-		{
-			bankCache.save(allOwned, accountHash);
-		}
-		else
-		{
-			bankCache.updateInMemory(allOwned);
-		}
-
-		SwingUtilities.invokeLater(() -> panel.updateBankStatus());
+		});
 	}
 
 	private void addItemAndVariations(Set<Integer> targetSet, int itemId)
