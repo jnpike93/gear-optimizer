@@ -1,6 +1,6 @@
 {
-  "version": 20261101,
-  "last_updated": "2026-11-01T05:22:12.452Z",
+  "version": 20261108,
+  "last_updated": "2026-11-08T05:25:23.115Z",
   "activities": {
     "k_ril_tsutsaroth_ranged": {
       "id": "k_ril_tsutsaroth_ranged",
@@ -3292,13 +3292,16 @@
           1725,
           22111,
           22986,
-          6585
+          6585,
+          1704
         ],
         "body": [
           29013,
           29039,
           29058,
-          29832
+          29832,
+          29280,
+          10551
         ],
         "legs": [
           29016,
@@ -18558,6 +18561,7 @@
           2497
         ],
         "weapon": [
+          34681,
           21902,
           12926,
           25865,
@@ -18574,6 +18578,7 @@
           11284
         ],
         "ammo": [
+          34696,
           21944,
           21946,
           9242,
@@ -21784,8 +21789,8 @@
           12601
         ],
         "special": [
-          27690,
           13652,
+          27690,
           29577,
           5698
         ]
@@ -22670,7 +22675,6 @@
           8842
         ],
         "boots": [
-          7159,
           31088,
           13237,
           19921
@@ -25259,11 +25263,6 @@
       },
       "inventory": [
         {
-          "id": 26374,
-          "qty": 1,
-          "optional": false
-        },
-        {
           "id": 27641,
           "qty": 1,
           "optional": false
@@ -25970,11 +25969,6 @@
         ]
       },
       "inventory": [
-        {
-          "id": 26374,
-          "qty": 1,
-          "optional": false
-        },
         {
           "id": 27641,
           "qty": 1,
@@ -28418,6 +28412,7 @@
           8839
         ],
         "weapon": [
+          34681,
           12926,
           11230,
           25849,
@@ -28457,7 +28452,9 @@
           26229
         ],
         "ammo": [
+          34696,
           22947,
+          34684,
           20220,
           20223,
           20226,
@@ -33611,8 +33608,8 @@
           4968
         ],
         "legs": [
-          24421,
           26386,
+          24421,
           29935,
           11834,
           29025,
@@ -39525,8 +39522,9 @@
           23979
         ],
         "weapon": [
-          12926,
-          24422
+          34681,
+          24422,
+          12926
         ],
         "shield": [
           25985,
@@ -39536,7 +39534,7 @@
         "ammo": [
           33595,
           22947,
-          11230,
+          34696,
           11212,
           21326
         ],
@@ -39933,6 +39931,7 @@
           4943,
           4944,
           13072,
+          30076,
           12492,
           2503
         ],
@@ -39956,6 +39955,7 @@
           4949,
           4950,
           13073,
+          30079,
           12494,
           2497
         ],
@@ -42797,24 +42797,24 @@
         ],
         "boots": [
           31088,
-          22954,
           13237,
+          22954,
           2577,
           19921,
           29806
         ],
         "ring": [
           25975,
-          12601,
           28310,
+          12601,
           19550,
           11771,
           28325
         ],
         "special": [
           26374,
-          11785,
           12926,
+          11785,
           22804
         ]
       },
@@ -49323,9 +49323,7 @@
           29796,
           13263,
           28997,
-          11889,
-          29889,
-          28810
+          11889
         ],
         "shield": [
           22322,
@@ -49862,12 +49860,22 @@
       },
       "inventory": [
         {
-          "id": 29932,
+          "id": 12926,
           "qty": 1,
           "optional": false
         },
         {
-          "id": 21295,
+          "id": 11889,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 6570,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 11665,
           "qty": 1,
           "optional": false
         },
@@ -49877,7 +49885,12 @@
           "optional": false
         },
         {
-          "id": 29935,
+          "id": 12954,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 13441,
           "qty": 1,
           "optional": false
         },
@@ -49892,12 +49905,12 @@
           "optional": false
         },
         {
-          "id": 12926,
+          "id": 13441,
           "qty": 1,
           "optional": false
         },
         {
-          "id": 26233,
+          "id": 13441,
           "qty": 1,
           "optional": false
         },
@@ -49977,7 +49990,7 @@
           "optional": false
         },
         {
-          "id": 27281,
+          "id": 12791,
           "qty": 1,
           "optional": false
         }
@@ -50080,7 +50093,7 @@
       },
       "inventory": [
         {
-          "id": 21003,
+          "id": 13576,
           "qty": 1,
           "optional": false
         },
@@ -50090,7 +50103,7 @@
           "optional": false
         },
         {
-          "id": 31106,
+          "id": 26233,
           "qty": 1,
           "optional": false
         },
@@ -50110,21 +50123,6 @@
           "optional": false
         },
         {
-          "id": 26233,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 12695,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 2444,
-          "qty": 1,
-          "optional": false
-        },
-        {
           "id": 12926,
           "qty": 1,
           "optional": false
@@ -50135,22 +50133,32 @@
           "optional": false
         },
         {
+          "id": 23685,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 23733,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 13441,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 13441,
+          "qty": 1,
+          "optional": false
+        },
+        {
           "id": 12695,
           "qty": 1,
           "optional": false
         },
         {
           "id": 2444,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 6685,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 3024,
           "qty": 1,
           "optional": false
         },
@@ -50313,6 +50321,31 @@
           "optional": false
         },
         {
+          "id": 29801,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 12695,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 2444,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 4714,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 4712,
+          "qty": 1,
+          "optional": false
+        },
+        {
           "id": 12695,
           "qty": 1,
           "optional": false
@@ -50324,26 +50357,6 @@
         },
         {
           "id": 12926,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 26233,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 12695,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 2444,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 6685,
           "qty": 1,
           "optional": false
         },
@@ -53013,6 +53026,7 @@
         "shield": [
           25985,
           12825,
+          6889,
           11924
         ],
         "ammo": [
@@ -53220,6 +53234,16 @@
         },
         {
           "id": 31081,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 12817,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 34719,
           "qty": 1,
           "optional": false
         },
@@ -54802,6 +54826,7 @@
           28801,
           27690,
           26374,
+          29577,
           26219
         ]
       },
@@ -63339,338 +63364,6 @@
         }
       ]
     },
-    "pay_to_play_runecraft_training_magic": {
-      "id": "pay_to_play_runecraft_training_magic",
-      "name": "Pay-to-play Runecraft training (Magic)",
-      "category": "Bossing",
-      "style": "Magic",
-      "slots": {
-        "neck": [
-          6585
-        ],
-        "ammo": [
-          22947
-        ],
-        "weapon": [
-          20736
-        ],
-        "shield": [
-          12831
-        ],
-        "hands": [
-          11133
-        ],
-        "ring": [
-          2552,
-          2554,
-          2556,
-          2558,
-          2560,
-          2562,
-          2564,
-          2566
-        ]
-      },
-      "inventory": [
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 566,
-          "qty": 100000,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 30771,
-          "qty": 160000,
-          "optional": false
-        },
-        {
-          "id": 27281,
-          "qty": 1,
-          "optional": false
-        }
-      ]
-    },
-    "pay_to_play_runecraft_training_melee": {
-      "id": "pay_to_play_runecraft_training_melee",
-      "name": "Pay-to-play Runecraft training (Melee)",
-      "category": "Bossing",
-      "style": "Melee",
-      "slots": {
-        "neck": [
-          6585
-        ],
-        "weapon": [
-          11889
-        ],
-        "shield": [
-          11283,
-          11284,
-          33186
-        ],
-        "hands": [
-          11133
-        ],
-        "ring": [
-          19550
-        ]
-      },
-      "inventory": [
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 22114,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 7936,
-          "qty": 1,
-          "optional": false
-        }
-      ]
-    },
     "hunter_training_staff_of_the_dead": {
       "id": "hunter_training_staff_of_the_dead",
       "name": "Hunter training (Staff of the Dead)",
@@ -65204,6 +64897,338 @@
         }
       ]
     },
+    "pay_to_play_runecraft_training_magic": {
+      "id": "pay_to_play_runecraft_training_magic",
+      "name": "Pay-to-play Runecraft training (Magic)",
+      "category": "Bossing",
+      "style": "Magic",
+      "slots": {
+        "neck": [
+          6585
+        ],
+        "ammo": [
+          22947
+        ],
+        "weapon": [
+          20736
+        ],
+        "shield": [
+          12831
+        ],
+        "hands": [
+          11133
+        ],
+        "ring": [
+          2552,
+          2554,
+          2556,
+          2558,
+          2560,
+          2562,
+          2564,
+          2566
+        ]
+      },
+      "inventory": [
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 566,
+          "qty": 100000,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 30771,
+          "qty": 160000,
+          "optional": false
+        },
+        {
+          "id": 27281,
+          "qty": 1,
+          "optional": false
+        }
+      ]
+    },
+    "pay_to_play_runecraft_training_melee": {
+      "id": "pay_to_play_runecraft_training_melee",
+      "name": "Pay-to-play Runecraft training (Melee)",
+      "category": "Bossing",
+      "style": "Melee",
+      "slots": {
+        "neck": [
+          6585
+        ],
+        "weapon": [
+          11889
+        ],
+        "shield": [
+          11283,
+          11284,
+          33186
+        ],
+        "hands": [
+          11133
+        ],
+        "ring": [
+          19550
+        ]
+      },
+      "inventory": [
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 22114,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 7936,
+          "qty": 1,
+          "optional": false
+        }
+      ]
+    },
     "slayer_custodian_stalker_ranged": {
       "id": "slayer_custodian_stalker_ranged",
       "name": "Custodian stalker (Ranged)",
@@ -65919,79 +65944,6 @@
         }
       ]
     },
-    "slayer_gryphons_ranged": {
-      "id": "slayer_gryphons_ranged",
-      "name": "Gryphons (Ranged)",
-      "category": "Slayer",
-      "style": "Ranged",
-      "slots": {
-        "head": [
-          11865,
-          11864,
-          19641,
-          19645,
-          19649,
-          21266,
-          21888,
-          23075,
-          24444,
-          25179,
-          25916,
-          28076
-        ],
-        "cape": [
-          28951,
-          28952,
-          28953
-        ],
-        "neck": [
-          33639
-        ],
-        "ammo": [
-          22947
-        ],
-        "weapon": [
-          27610
-        ],
-        "body": [
-          27229
-        ],
-        "legs": [
-          27232
-        ],
-        "hands": [
-          7462
-        ],
-        "boots": [
-          28805
-        ],
-        "ring": [
-          12601
-        ]
-      },
-      "inventory": [
-        {
-          "id": 23733,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 2434,
-          "qty": 4,
-          "optional": false
-        },
-        {
-          "id": 3144,
-          "qty": 8,
-          "optional": false
-        },
-        {
-          "id": 8013,
-          "qty": 1,
-          "optional": false
-        }
-      ]
-    },
     "slayer_aquanites_melee_switch": {
       "id": "slayer_aquanites_melee_switch",
       "name": "Aquanites (Melee switch)",
@@ -66349,335 +66301,6 @@
         },
         {
           "id": 13116,
-          "qty": 1,
-          "optional": false
-        }
-      ]
-    },
-    "sorceress_s_garden_melee": {
-      "id": "sorceress_s_garden_melee",
-      "name": "Sorceress's Garden (Melee)",
-      "category": "Bossing",
-      "style": "Melee",
-      "slots": {
-        "body": [
-          10057
-        ],
-        "legs": [
-          10059
-        ],
-        "cape": [
-          10071,
-          10069
-        ]
-      },
-      "inventory": [
-        {
-          "id": 1704,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 2552,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 1919,
-          "qty": 1,
-          "optional": false
-        }
-      ]
-    },
-    "pay_to_play_prayer_training_high_magic_defence": {
-      "id": "pay_to_play_prayer_training_high_magic_defence",
-      "name": "Pay-to-play Prayer training (High Magic defence)",
-      "category": "Bossing",
-      "style": "Magic",
-      "slots": {
-        "head": [
-          12931,
-          11865,
-          11864,
-          19641,
-          19645,
-          19649,
-          21266,
-          21888,
-          23075,
-          24444,
-          25179,
-          25916,
-          28076,
-          10828
-        ],
-        "neck": [
-          11090,
-          1704
-        ],
-        "body": [
-          27229,
-          11828,
-          4736,
-          4940,
-          4941,
-          4942,
-          4943,
-          4944,
-          2503
-        ],
-        "legs": [
-          27232,
-          11830,
-          4740,
-          4946,
-          4947,
-          4948,
-          4949,
-          4950,
-          2497
-        ],
-        "weapon": [
-          11791,
-          22296,
-          4675,
-          11905,
-          9084,
-          1383
-        ],
-        "shield": [
-          12817,
-          12821,
-          22002,
-          22003,
-          21000,
-          11283,
-          11284,
-          33186
-        ],
-        "ammo": [
-          22947,
-          20220,
-          20223,
-          20226,
-          20229,
-          20232,
-          20235
-        ],
-        "hands": [
-          31106,
-          2491
-        ],
-        "boots": [
-          4097
-        ],
-        "ring": [
-          2572,
-          19550
-        ]
-      },
-      "inventory": [
-        {
-          "id": 12931,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 11791,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 11865,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 4740,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 8013,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 12625,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 6685,
-          "qty": 6,
-          "optional": false
-        },
-        {
-          "id": 24598,
-          "qty": 3,
-          "optional": false
-        },
-        {
-          "id": 10925,
-          "qty": 3,
-          "optional": false
-        },
-        {
-          "id": 12913,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 24592,
-          "qty": 2,
-          "optional": false
-        },
-        {
-          "id": 24589,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 12695,
-          "qty": 1,
-          "optional": false
-        }
-      ]
-    },
-    "pay_to_play_prayer_training_dinh_s_bulwark": {
-      "id": "pay_to_play_prayer_training_dinh_s_bulwark",
-      "name": "Pay-to-play Prayer training (Dinh's bulwark)",
-      "category": "Bossing",
-      "style": "Melee",
-      "slots": {
-        "head": [
-          12931,
-          11865,
-          11864,
-          19641,
-          19645,
-          19649,
-          21266,
-          21888,
-          23075,
-          24444,
-          25179,
-          25916,
-          28076,
-          10828
-        ],
-        "neck": [
-          11090,
-          1704
-        ],
-        "body": [
-          27229,
-          11828,
-          4736,
-          4940,
-          4941,
-          4942,
-          4943,
-          4944,
-          2503
-        ],
-        "legs": [
-          27232,
-          11830,
-          4740,
-          4946,
-          4947,
-          4948,
-          4949,
-          4950,
-          2497
-        ],
-        "weapon": [
-          21015
-        ],
-        "ammo": [
-          22947,
-          20220,
-          20223,
-          20226,
-          20229,
-          20232,
-          20235
-        ],
-        "hands": [
-          2491
-        ],
-        "boots": [
-          4097
-        ],
-        "ring": [
-          2572,
-          19550
-        ]
-      },
-      "inventory": [
-        {
-          "id": 12931,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 11791,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 11865,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 4740,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 8013,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 12625,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 6685,
-          "qty": 6,
-          "optional": false
-        },
-        {
-          "id": 24598,
-          "qty": 3,
-          "optional": false
-        },
-        {
-          "id": 10925,
-          "qty": 3,
-          "optional": false
-        },
-        {
-          "id": 12913,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 24592,
-          "qty": 2,
-          "optional": false
-        },
-        {
-          "id": 24589,
-          "qty": 1,
-          "optional": false
-        },
-        {
-          "id": 12695,
           "qty": 1,
           "optional": false
         }
@@ -68313,6 +67936,408 @@
         },
         {
           "id": 27281,
+          "qty": 1,
+          "optional": false
+        }
+      ]
+    },
+    "slayer_gryphons_ranged": {
+      "id": "slayer_gryphons_ranged",
+      "name": "Gryphons (Ranged)",
+      "category": "Slayer",
+      "style": "Ranged",
+      "slots": {
+        "head": [
+          11865,
+          11864,
+          19641,
+          19645,
+          19649,
+          21266,
+          21888,
+          23075,
+          24444,
+          25179,
+          25916,
+          28076
+        ],
+        "cape": [
+          28951,
+          28952,
+          28953
+        ],
+        "neck": [
+          33639
+        ],
+        "ammo": [
+          22947
+        ],
+        "weapon": [
+          27610
+        ],
+        "body": [
+          27229
+        ],
+        "legs": [
+          27232
+        ],
+        "hands": [
+          7462
+        ],
+        "boots": [
+          28805
+        ],
+        "ring": [
+          12601
+        ]
+      },
+      "inventory": [
+        {
+          "id": 23733,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 2434,
+          "qty": 4,
+          "optional": false
+        },
+        {
+          "id": 3144,
+          "qty": 8,
+          "optional": false
+        },
+        {
+          "id": 8013,
+          "qty": 1,
+          "optional": false
+        }
+      ]
+    },
+    "sorceress_s_garden_melee": {
+      "id": "sorceress_s_garden_melee",
+      "name": "Sorceress's Garden (Melee)",
+      "category": "Bossing",
+      "style": "Melee",
+      "slots": {
+        "body": [
+          10057
+        ],
+        "legs": [
+          10059
+        ],
+        "cape": [
+          10071,
+          10069
+        ]
+      },
+      "inventory": [
+        {
+          "id": 1704,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 2552,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 1919,
+          "qty": 1,
+          "optional": false
+        }
+      ]
+    },
+    "pay_to_play_prayer_training_high_magic_defence": {
+      "id": "pay_to_play_prayer_training_high_magic_defence",
+      "name": "Pay-to-play Prayer training (High Magic defence)",
+      "category": "Bossing",
+      "style": "Magic",
+      "slots": {
+        "head": [
+          12931,
+          11865,
+          11864,
+          19641,
+          19645,
+          19649,
+          21266,
+          21888,
+          23075,
+          24444,
+          25179,
+          25916,
+          28076,
+          10828
+        ],
+        "neck": [
+          11090,
+          1704
+        ],
+        "body": [
+          27229,
+          11828,
+          4736,
+          4940,
+          4941,
+          4942,
+          4943,
+          4944,
+          2503
+        ],
+        "legs": [
+          27232,
+          11830,
+          4740,
+          4946,
+          4947,
+          4948,
+          4949,
+          4950,
+          2497
+        ],
+        "weapon": [
+          11791,
+          22296,
+          4675,
+          11905,
+          9084,
+          1383
+        ],
+        "shield": [
+          12817,
+          12821,
+          22002,
+          22003,
+          21000,
+          11283,
+          11284,
+          33186
+        ],
+        "ammo": [
+          22947,
+          20220,
+          20223,
+          20226,
+          20229,
+          20232,
+          20235
+        ],
+        "hands": [
+          31106,
+          2491
+        ],
+        "boots": [
+          4097
+        ],
+        "ring": [
+          2572,
+          19550
+        ]
+      },
+      "inventory": [
+        {
+          "id": 12931,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 11791,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 11865,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 4740,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 8013,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 12625,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 6685,
+          "qty": 6,
+          "optional": false
+        },
+        {
+          "id": 24598,
+          "qty": 3,
+          "optional": false
+        },
+        {
+          "id": 10925,
+          "qty": 3,
+          "optional": false
+        },
+        {
+          "id": 12913,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 24592,
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "id": 24589,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 12695,
+          "qty": 1,
+          "optional": false
+        }
+      ]
+    },
+    "pay_to_play_prayer_training_dinh_s_bulwark": {
+      "id": "pay_to_play_prayer_training_dinh_s_bulwark",
+      "name": "Pay-to-play Prayer training (Dinh's bulwark)",
+      "category": "Bossing",
+      "style": "Melee",
+      "slots": {
+        "head": [
+          12931,
+          11865,
+          11864,
+          19641,
+          19645,
+          19649,
+          21266,
+          21888,
+          23075,
+          24444,
+          25179,
+          25916,
+          28076,
+          10828
+        ],
+        "neck": [
+          11090,
+          1704
+        ],
+        "body": [
+          27229,
+          11828,
+          4736,
+          4940,
+          4941,
+          4942,
+          4943,
+          4944,
+          2503
+        ],
+        "legs": [
+          27232,
+          11830,
+          4740,
+          4946,
+          4947,
+          4948,
+          4949,
+          4950,
+          2497
+        ],
+        "weapon": [
+          21015
+        ],
+        "ammo": [
+          22947,
+          20220,
+          20223,
+          20226,
+          20229,
+          20232,
+          20235
+        ],
+        "hands": [
+          2491
+        ],
+        "boots": [
+          4097
+        ],
+        "ring": [
+          2572,
+          19550
+        ]
+      },
+      "inventory": [
+        {
+          "id": 12931,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 11791,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 11865,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 4740,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 8013,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 12625,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 6685,
+          "qty": 6,
+          "optional": false
+        },
+        {
+          "id": 24598,
+          "qty": 3,
+          "optional": false
+        },
+        {
+          "id": 10925,
+          "qty": 3,
+          "optional": false
+        },
+        {
+          "id": 12913,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 24592,
+          "qty": 2,
+          "optional": false
+        },
+        {
+          "id": 24589,
+          "qty": 1,
+          "optional": false
+        },
+        {
+          "id": 12695,
           "qty": 1,
           "optional": false
         }
@@ -76927,7 +76952,6 @@
           28810,
           4151,
           1305,
-          1289,
           1432
         ],
         "shield": [
